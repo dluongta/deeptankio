@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title> deeptank.io </title>
   <style>
     html,
@@ -13,6 +14,11 @@
       font-family: Arial;
       color: #eee
     }
+    html, body {
+      overflow: hidden;  /* Ẩn thanh cuộn */
+      touch-action: none; /* Ngăn cử chỉ vuốt cuộn mặc định */
+    }
+
 
     #game {
       display: block;
@@ -144,6 +150,11 @@
       color: white;
       border-radius: 6px;
     }
+#joystickContainer,
+#joystickRightContainer {
+  touch-action: none;
+  -ms-touch-action: none;
+}
 
     /* Ẩn joystick & nút trên PC */
     @media (hover: hover) and (pointer: fine) {
@@ -164,7 +175,7 @@
 </head>
 
 <body>
-  <canvas id="game" width="1000" height="700"></canvas>
+<canvas id="game"></canvas>
 
   <div id="hud">
     ID: <span id="pid">-</span> | Level: <span id="lvl">-</span> | XP: <span id="xp">0</span>/<span id="xpTo">0</span> |
@@ -234,6 +245,7 @@
     let activeR = false;
 
     containerRight.addEventListener('touchstart', e => {
+      e.preventDefault();
       activeR = true;
       const touch = e.touches[0];
       const rect = containerRight.getBoundingClientRect();
@@ -364,6 +376,7 @@
     let active = false;
 
     container.addEventListener('touchstart', e => {
+      e.preventDefault();
       active = true;
       const touch = e.touches[0];
       const rect = container.getBoundingClientRect();
@@ -572,6 +585,44 @@
         socket.send(JSON.stringify({ type: 'upgrade', choice: choiceId }));
       hideUpgradeMenu();
     }
+    window.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+}, { passive: false });
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  viewport.w = canvas.width;
+  viewport.h = canvas.height;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Chặn vuốt lên xuống của trình duyệt
+window.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+}, { passive: false });
+
+// Thêm preventDefault cho touchstart joystick trái và phải
+container.addEventListener('touchstart', e => {
+  e.preventDefault();
+  active = true;
+  const touch = e.touches[0];
+  const rect = container.getBoundingClientRect();
+  origin.x = rect.left + rect.width / 2;
+  origin.y = rect.top + rect.height / 2;
+  moveJoystick(touch.clientX, touch.clientY);
+}, { passive: false });
+
+containerRight.addEventListener('touchstart', e => {
+  e.preventDefault();
+  activeR = true;
+  const touch = e.touches[0];
+  const rect = containerRight.getBoundingClientRect();
+  originR.x = rect.left + rect.width / 2;
+  originR.y = rect.top + rect.height / 2;
+  moveJoystickRight(touch.clientX, touch.clientY);
+}, { passive: false });
+
   </script>
 </body>
 
