@@ -91,13 +91,26 @@
     /* Joystick style */
     #joystickContainer {
       position: fixed;
-      bottom: 30px;
-      left: 30px;
-      width: 120px;
-      height: 120px;
-      background: rgba(255, 255, 255, 0.05);
+      bottom: 50px;
+      left: 100px;
+      width: 160px;
+      height: 160px;
+      background: rgba(255, 255, 255, 0.07);
       border-radius: 50%;
-      touch-action: none;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #joystickRightContainer {
+      position: fixed;
+      bottom: 50px;
+      right: 100px;
+      width: 160px;
+      height: 160px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 50%;
       z-index: 999;
       display: flex;
       align-items: center;
@@ -105,41 +118,24 @@
     }
 
     #joystick {
-      width: 60px;
-      height: 60px;
+      width: 80px;
+      height: 80px;
       background: #4dd0e1;
       border-radius: 50%;
-      touch-action: none;
-    }
-
-    #joystickRightContainer {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      width: 120px;
-      height: 120px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 50%;
-      touch-action: none;
-      z-index: 999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     #joystickRight {
-      width: 60px;
-      height: 60px;
+      width: 80px;
+      height: 80px;
       background: #ff8a65;
       border-radius: 50%;
-      touch-action: none;
     }
 
-    /* Nút auto-fire */
+
     #autoFireBtn {
       position: fixed;
-      right: 30px;
-      bottom: 170px;
+      right: 100px;
+      bottom: 230px;
       z-index: 1000;
       padding: 10px 16px;
       font-size: 14px;
