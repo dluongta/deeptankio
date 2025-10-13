@@ -93,22 +93,37 @@ function connect() {
 connect();
 
 // INPUT
-const inputs = { up:false, down:false, left:false, right:false, aimX:0, aimY:0, firing:false, autoFire:false };
+const inputs = {
+  up: false, down: false, left: false, right: false,
+  aimX: 0, aimY: 0, firing: false, autoFire: false
+};
+
 window.addEventListener('keydown', e => {
+  // Ngăn cuộn trang nếu nhấn phím mũi tên
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+    e.preventDefault();
+  }
+
   if (e.key === 'w' || e.key === 'ArrowUp') inputs.up = true;
   if (e.key === 's' || e.key === 'ArrowDown') inputs.down = true;
   if (e.key === 'a' || e.key === 'ArrowLeft') inputs.left = true;
   if (e.key === 'd' || e.key === 'ArrowRight') inputs.right = true;
   if (e.key === 'f') inputs.autoFire = !inputs.autoFire;
   sendInputs();
-});
+}, { passive: false });  // Bắt buộc để preventDefault hoạt động
+
 window.addEventListener('keyup', e => {
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+    e.preventDefault();
+  }
+
   if (e.key === 'w' || e.key === 'ArrowUp') inputs.up = false;
   if (e.key === 's' || e.key === 'ArrowDown') inputs.down = false;
   if (e.key === 'a' || e.key === 'ArrowLeft') inputs.left = false;
   if (e.key === 'd' || e.key === 'ArrowRight') inputs.right = false;
   sendInputs();
-});
+}, { passive: false });
+
 canvas.addEventListener('mousemove', e => {
   const rect = canvas.getBoundingClientRect();
   inputs.aimX = viewport.x + (e.clientX - rect.left);
