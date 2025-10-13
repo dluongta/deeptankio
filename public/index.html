@@ -14,9 +14,13 @@
       font-family: Arial;
       color: #eee
     }
-    html, body {
-      overflow: hidden;  /* Ẩn thanh cuộn */
-      touch-action: none; /* Ngăn cử chỉ vuốt cuộn mặc định */
+
+    html,
+    body {
+      overflow: hidden;
+      /* Ẩn thanh cuộn */
+      touch-action: none;
+      /* Ngăn cử chỉ vuốt cuộn mặc định */
     }
 
 
@@ -150,11 +154,12 @@
       color: white;
       border-radius: 6px;
     }
-#joystickContainer,
-#joystickRightContainer {
-  touch-action: none;
-  -ms-touch-action: none;
-}
+
+    #joystickContainer,
+    #joystickRightContainer {
+      touch-action: none;
+      -ms-touch-action: none;
+    }
 
     /* Ẩn joystick & nút trên PC */
     @media (hover: hover) and (pointer: fine) {
@@ -171,11 +176,36 @@
         display: none;
       }
     }
+
+    #joystickContainer {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 120px;
+      /* bạn có thể chỉnh size */
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      touch-action: none;
+      z-index: 1000;
+    }
+
+    #joystickRightContainer {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      touch-action: none;
+      z-index: 1000;
+    }
   </style>
 </head>
 
 <body>
-<canvas id="game"></canvas>
+  <canvas id="game"></canvas>
 
   <div id="hud">
     ID: <span id="pid">-</span> | Level: <span id="lvl">-</span> | XP: <span id="xp">0</span>/<span id="xpTo">0</span> |
@@ -256,36 +286,39 @@
 
     containerRight.addEventListener('touchmove', e => {
       if (!activeR) return;
+      e.preventDefault();
       const touch = e.touches[0];
       moveJoystickRight(touch.clientX, touch.clientY);
-      e.preventDefault();
     }, { passive: false });
 
-    containerRight.addEventListener('touchend', () => {
+    containerRight.addEventListener('touchend', e => {
+      e.preventDefault();
       activeR = false;
-      joystickRight.style.transform = `translate(0px, 0px)`;
-      inputs.firing = false;
-      sendInputs();
-    });
+      resetJoystickRight();
+    }, { passive: false });
 
-    function moveJoystickRight(x, y) {
-      const dx = x - originR.x;
-      const dy = y - originR.y;
-      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 40);
-      const angle = Math.atan2(dy, dx);
-      joystickPosR.x = Math.cos(angle) * dist;
-      joystickPosR.y = Math.sin(angle) * dist;
-      joystickRight.style.transform = `translate(${joystickPosR.x}px, ${joystickPosR.y}px)`;
-
-      // Gửi hướng bắn (tọa độ tương đối từ trung tâm player)
-      const me = state.players.find(p => p.id === clientId);
-      if (me) {
-        inputs.aimX = me.x + Math.cos(angle) * 100;
-        inputs.aimY = me.y + Math.sin(angle) * 100;
-        inputs.firing = true;
-        sendInputs();
+    function moveJoystickRight(clientX, clientY) {
+      const maxDistance = containerRight.clientWidth / 2;
+      let deltaX = clientX - originR.x;
+      let deltaY = clientY - originR.y;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      if (distance > maxDistance) {
+        const angle = Math.atan2(deltaY, deltaX);
+        deltaX = Math.cos(angle) * maxDistance;
+        deltaY = Math.sin(angle) * maxDistance;
       }
+      joystickRight.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+      joystickPosR = { x: deltaX / maxDistance, y: deltaY / maxDistance };
+      // Gửi dữ liệu hướng bắn tới server hoặc xử lý tại client
+      // Ví dụ: sendAimDirection(joystickPosR.x, joystickPosR.y);
     }
+
+    function resetJoystickRight() {
+      joystickRight.style.transform = 'translate(0, 0)';
+      joystickPosR = { x: 0, y: 0 };
+      // Gửi tín hiệu dừng bắn hoặc hướng bắn trung lập
+    }
+
 
     function toggleAutoFire() {
       inputs.autoFire = !inputs.autoFire;
@@ -585,43 +618,43 @@
         socket.send(JSON.stringify({ type: 'upgrade', choice: choiceId }));
       hideUpgradeMenu();
     }
-    window.addEventListener('touchmove', function(e) {
-  e.preventDefault();
-}, { passive: false });
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  viewport.w = canvas.width;
-  viewport.h = canvas.height;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+    window.addEventListener('touchmove', function (e) {
+      e.preventDefault();
+    }, { passive: false });
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      viewport.w = canvas.width;
+      viewport.h = canvas.height;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
-// Chặn vuốt lên xuống của trình duyệt
-window.addEventListener('touchmove', function(e) {
-  e.preventDefault();
-}, { passive: false });
+    // Chặn vuốt lên xuống của trình duyệt
+    window.addEventListener('touchmove', function (e) {
+      e.preventDefault();
+    }, { passive: false });
 
-// Thêm preventDefault cho touchstart joystick trái và phải
-container.addEventListener('touchstart', e => {
-  e.preventDefault();
-  active = true;
-  const touch = e.touches[0];
-  const rect = container.getBoundingClientRect();
-  origin.x = rect.left + rect.width / 2;
-  origin.y = rect.top + rect.height / 2;
-  moveJoystick(touch.clientX, touch.clientY);
-}, { passive: false });
+    // Thêm preventDefault cho touchstart joystick trái và phải
+    container.addEventListener('touchstart', e => {
+      e.preventDefault();
+      active = true;
+      const touch = e.touches[0];
+      const rect = container.getBoundingClientRect();
+      origin.x = rect.left + rect.width / 2;
+      origin.y = rect.top + rect.height / 2;
+      moveJoystick(touch.clientX, touch.clientY);
+    }, { passive: false });
 
-containerRight.addEventListener('touchstart', e => {
-  e.preventDefault();
-  activeR = true;
-  const touch = e.touches[0];
-  const rect = containerRight.getBoundingClientRect();
-  originR.x = rect.left + rect.width / 2;
-  originR.y = rect.top + rect.height / 2;
-  moveJoystickRight(touch.clientX, touch.clientY);
-}, { passive: false });
+    containerRight.addEventListener('touchstart', e => {
+      e.preventDefault();
+      activeR = true;
+      const touch = e.touches[0];
+      const rect = containerRight.getBoundingClientRect();
+      originR.x = rect.left + rect.width / 2;
+      originR.y = rect.top + rect.height / 2;
+      moveJoystickRight(touch.clientX, touch.clientY);
+    }, { passive: false });
 
   </script>
 </body>
