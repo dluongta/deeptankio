@@ -1,37 +1,191 @@
 <!doctype html>
 <html>
+
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
   <title> deeptank.io </title>
   <style>
-    html,body{height:100%;margin:0;background:#2a2a2a;font-family:Arial;color:#eee}
-    #game{display:block;margin:0 auto;background:#9aa0a6;box-shadow:0 0 10px rgba(0,0,0,.6)}
-    #hud{position:fixed;left:10px;top:10px;z-index:40;background:rgba(0,0,0,0.4);padding:8px;border-radius:6px}
-    #leader{position:fixed;right:10px;top:10px;z-index:40;background:rgba(0,0,0,0.35);padding:8px;border-radius:6px}
-    #minimap{position:fixed;right:10px;bottom:10px;z-index:40;background:rgba(0,0,0,0.35);padding:6px;border-radius:6px}
-    #help{position:fixed;left:10px;bottom:10px;background:rgba(0,0,0,0.4);padding:8px;border-radius:6px;font-size:13px;line-height:1.5}
-    #upgradeUI{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:100;display:none;background:rgba(0,0,0,0.9);padding:18px;border-radius:8px}
-    #upgradeUI button{display:block;margin:8px;padding:10px 14px;font-size:16px;border-radius:6px;border:none;cursor:pointer}
-    li{margin-bottom:6px}
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: #2a2a2a;
+      font-family: Arial;
+      color: #eee
+    }
+
+    #game {
+      display: block;
+      margin: 0 auto;
+      background: #9aa0a6;
+      box-shadow: 0 0 10px rgba(0, 0, 0, .6)
+    }
+
+    #hud {
+      position: fixed;
+      left: 10px;
+      top: 10px;
+      z-index: 40;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px;
+      border-radius: 6px
+    }
+
+    #leader {
+      position: fixed;
+      right: 10px;
+      top: 10px;
+      z-index: 40;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 8px;
+      border-radius: 6px
+    }
+
+    #minimap {
+      position: fixed;
+      right: 10px;
+      bottom: 10px;
+      z-index: 40;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 6px;
+      border-radius: 6px
+    }
+
+    #help {
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.5
+    }
+
+    #upgradeUI {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 100;
+      display: none;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 18px;
+      border-radius: 8px
+    }
+
+    #upgradeUI button {
+      display: block;
+      margin: 8px;
+      padding: 10px 14px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer
+    }
+
+    li {
+      margin-bottom: 6px
+    }
+
+    /* Joystick style */
+    #joystickContainer {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      width: 120px;
+      height: 120px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 50%;
+      touch-action: none;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #joystick {
+      width: 60px;
+      height: 60px;
+      background: #4dd0e1;
+      border-radius: 50%;
+      touch-action: none;
+    }
+
+    #joystickRightContainer {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 120px;
+      height: 120px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 50%;
+      touch-action: none;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #joystickRight {
+      width: 60px;
+      height: 60px;
+      background: #ff8a65;
+      border-radius: 50%;
+      touch-action: none;
+    }
+
+    /* Nút auto-fire */
+    #autoFireBtn {
+      position: fixed;
+      right: 30px;
+      bottom: 170px;
+      z-index: 1000;
+      padding: 10px 16px;
+      font-size: 14px;
+      border: none;
+      background: #4caf50;
+      color: white;
+      border-radius: 6px;
+    }
+
+    /* Ẩn joystick & nút trên PC */
+    @media (hover: hover) and (pointer: fine) {
+
+      #joystickRightContainer,
+      #autoFireBtn {
+        display: none;
+      }
+    }
+
+    /* Ẩn joystick khi dùng chuột (PC) */
+    @media (hover: hover) and (pointer: fine) {
+      #joystickContainer {
+        display: none;
+      }
+    }
   </style>
 </head>
+
 <body>
   <canvas id="game" width="1000" height="700"></canvas>
 
   <div id="hud">
-    ID: <span id="pid">-</span> | Level: <span id="lvl">-</span> | XP: <span id="xp">0</span>/<span id="xpTo">0</span> | HP: <span id="hp">0</span> | Score: <span id="score">0</span>
+    ID: <span id="pid">-</span> | Level: <span id="lvl">-</span> | XP: <span id="xp">0</span>/<span id="xpTo">0</span> |
+    HP: <span id="hp">0</span> | Score: <span id="score">0</span>
   </div>
 
-  <div id="leader"><b>Leaderboard</b><ol id="lb"></ol></div>
+  <div id="leader"><b>Leaderboard</b>
+    <ol id="lb"></ol>
+  </div>
 
   <div id="minimap"><canvas id="mini" width="200" height="120"></canvas></div>
 
   <div id="help">
     <b>Hướng dẫn:</b><br>
-    - Di chuyển: WASD hoặc ↑↓←→<br>
-    - Chuột: xoay nòng súng<br>
+    - Di chuyển: WASD hoặc ↑↓←→ hoặc joystick trái<br>
+    - Joystick phải (mobile): xoay nòng súng + bắn<br>
     - Nhấn <b>F</b>: Bật/Tắt auto-fire<br>
-    - Khi chạm vật thể: dừng & mất máu<br>
     - Lên cấp: chọn nâng cấp<br>
   </div>
 
@@ -40,274 +194,389 @@
     <div id="upgradeButtons"></div>
   </div>
 
-<script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const mini = document.getElementById('mini');
-const mctx = mini.getContext('2d');
+  <!-- Joystick container -->
+  <div id="joystickContainer">
+    <div id="joystick"></div>
+  </div>
 
-const pidEl = document.getElementById('pid');
-const lvlEl = document.getElementById('lvl');
-const xpEl = document.getElementById('xp');
-const xpToEl = document.getElementById('xpTo');
-const hpEl = document.getElementById('hp');
-const scoreEl = document.getElementById('score');
-const lbEl = document.getElementById('lb');
+  <!-- Joystick phải (dùng để điều khiển hướng bắn) -->
+  <div id="joystickRightContainer">
+    <div id="joystickRight"></div>
+  </div>
 
-const upgradeUI = document.getElementById('upgradeUI');
-const upgradeButtonsDiv = document.getElementById('upgradeButtons');
+  <!-- Nút bật/tắt auto-fire -->
+  <button id="autoFireBtn" onclick="toggleAutoFire()">Auto Fire: OFF</button>
 
-let clientId = null;
-let worldSize = { w:3000, h:2000 };
 
-let state = { players:[], bullets:[], obstacles:[] };
-let socket;
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const mini = document.getElementById('mini');
+    const mctx = mini.getContext('2d');
 
-function connect() {
-  socket = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
-  socket.onopen = ()=>console.log('ws open');
-  socket.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    if (msg.type === 'welcome') {
-      clientId = msg.id;
-      pidEl.textContent = clientId.slice(0,8);
-      if (msg.worldSize) worldSize = msg.worldSize;
-    } else if (msg.type === 'state') {
-        state = msg;
+    const pidEl = document.getElementById('pid');
+    const lvlEl = document.getElementById('lvl');
+    const xpEl = document.getElementById('xp');
+    const xpToEl = document.getElementById('xpTo');
+    const hpEl = document.getElementById('hp');
+    const scoreEl = document.getElementById('score');
+    const lbEl = document.getElementById('lb');
 
-  // cập nhật leaderboard
-  lbEl.innerHTML = "";
-  if (msg.leaderboard) {
-    msg.leaderboard.forEach(e=>{
-      const li=document.createElement('li');
-      li.textContent = `${e.id.slice(0,6)} — Lv${e.level} — ${e.score} pts`;
-      lbEl.appendChild(li);
+    const upgradeUI = document.getElementById('upgradeUI');
+    const upgradeButtonsDiv = document.getElementById('upgradeButtons');
+
+    let clientId = null;
+    let worldSize = { w: 3000, h: 2000 };
+
+    let state = { players: [], bullets: [], obstacles: [] };
+    let socket;
+    // === Joystick phải ===
+    const joystickRight = document.getElementById('joystickRight');
+    const containerRight = document.getElementById('joystickRightContainer');
+    let originR = { x: 0, y: 0 };
+    let joystickPosR = { x: 0, y: 0 };
+    let activeR = false;
+
+    containerRight.addEventListener('touchstart', e => {
+      activeR = true;
+      const touch = e.touches[0];
+      const rect = containerRight.getBoundingClientRect();
+      originR.x = rect.left + rect.width / 2;
+      originR.y = rect.top + rect.height / 2;
+      moveJoystickRight(touch.clientX, touch.clientY);
+    }, { passive: false });
+
+    containerRight.addEventListener('touchmove', e => {
+      if (!activeR) return;
+      const touch = e.touches[0];
+      moveJoystickRight(touch.clientX, touch.clientY);
+      e.preventDefault();
+    }, { passive: false });
+
+    containerRight.addEventListener('touchend', () => {
+      activeR = false;
+      joystickRight.style.transform = `translate(0px, 0px)`;
+      inputs.firing = false;
+      sendInputs();
     });
-  }
-    } else if (msg.type === 'levelup') {
-      showUpgradeMenu(msg.level);
+
+    function moveJoystickRight(x, y) {
+      const dx = x - originR.x;
+      const dy = y - originR.y;
+      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 40);
+      const angle = Math.atan2(dy, dx);
+      joystickPosR.x = Math.cos(angle) * dist;
+      joystickPosR.y = Math.sin(angle) * dist;
+      joystickRight.style.transform = `translate(${joystickPosR.x}px, ${joystickPosR.y}px)`;
+
+      // Gửi hướng bắn (tọa độ tương đối từ trung tâm player)
+      const me = state.players.find(p => p.id === clientId);
+      if (me) {
+        inputs.aimX = me.x + Math.cos(angle) * 100;
+        inputs.aimY = me.y + Math.sin(angle) * 100;
+        inputs.firing = true;
+        sendInputs();
+      }
     }
-  };
-  socket.onclose = ()=>setTimeout(connect, 1200);
-}
-connect();
 
-// INPUT
-const inputs = {
-  up: false, down: false, left: false, right: false,
-  aimX: 0, aimY: 0, firing: false, autoFire: false
-};
-
-window.addEventListener('keydown', e => {
-  // Ngăn cuộn trang nếu nhấn phím mũi tên
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-    e.preventDefault();
-  }
-
-  if (e.key === 'w' || e.key === 'ArrowUp') inputs.up = true;
-  if (e.key === 's' || e.key === 'ArrowDown') inputs.down = true;
-  if (e.key === 'a' || e.key === 'ArrowLeft') inputs.left = true;
-  if (e.key === 'd' || e.key === 'ArrowRight') inputs.right = true;
-  if (e.key === 'f') inputs.autoFire = !inputs.autoFire;
-  sendInputs();
-}, { passive: false });  // Bắt buộc để preventDefault hoạt động
-
-window.addEventListener('keyup', e => {
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-    e.preventDefault();
-  }
-
-  if (e.key === 'w' || e.key === 'ArrowUp') inputs.up = false;
-  if (e.key === 's' || e.key === 'ArrowDown') inputs.down = false;
-  if (e.key === 'a' || e.key === 'ArrowLeft') inputs.left = false;
-  if (e.key === 'd' || e.key === 'ArrowRight') inputs.right = false;
-  sendInputs();
-}, { passive: false });
-
-canvas.addEventListener('mousemove', e => {
-  const rect = canvas.getBoundingClientRect();
-  inputs.aimX = viewport.x + (e.clientX - rect.left);
-  inputs.aimY = viewport.y + (e.clientY - rect.top);
-  sendInputs();
-});
-canvas.addEventListener('mousedown', ()=>{ inputs.firing = true; sendInputs(); });
-canvas.addEventListener('mouseup', ()=>{ inputs.firing = false; sendInputs(); });
-
-function sendInputs() {
-  if (socket && socket.readyState === WebSocket.OPEN)
-    socket.send(JSON.stringify({ type:'input', data: inputs }));
-}
-
-const viewport = { w: canvas.width, h: canvas.height, x:0, y:0 };
-
-// DRAW LOOP
-function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const me = state.players.find(p => p.id === clientId);
-  if (me) {
-    viewport.x = me.x - viewport.w/2;
-    viewport.y = me.y - viewport.h/2;
-    lvlEl.textContent = me.level;
-    xpEl.textContent = Math.round(me.xp);
-    xpToEl.textContent = Math.round(me.xpToLevel);
-    hpEl.textContent = Math.round(me.hp);
-    scoreEl.textContent = Math.round(me.score);
-  }
-
-  // Grid
-  ctx.fillStyle = '#9aa0a6';
-  ctx.fillRect(0,0,viewport.w,viewport.h);
-  ctx.strokeStyle = 'rgba(0,0,0,0.06)';
-  for (let gx = Math.floor(viewport.x/200)*200; gx < viewport.x + viewport.w; gx += 200) {
-    ctx.beginPath(); ctx.moveTo(gx - viewport.x, 0); ctx.lineTo(gx - viewport.x, viewport.h); ctx.stroke();
-  }
-  for (let gy = Math.floor(viewport.y/200)*200; gy < viewport.y + viewport.h; gy += 200) {
-    ctx.beginPath(); ctx.moveTo(0, gy - viewport.y); ctx.lineTo(viewport.w, gy - viewport.y); ctx.stroke();
-  }
-
-// Obstacles (with HP bar)
-state.obstacles.forEach(o => {
-  if (o.hp <= 0) return;
-
-  const sx = o.x - viewport.x;
-  const sy = o.y - viewport.y;
-
-  ctx.fillStyle = '#444';
-
-  // --- Draw shape ---
-  if (o.type === 'rect') {
-    ctx.fillRect(sx, sy, o.w, o.h);
-  } 
-  else if (o.type === 'tri') {
-    const s = o.size;
-    ctx.beginPath();
-    ctx.moveTo(sx, sy - s / 2);
-    ctx.lineTo(sx - s / 2, sy + s / 2);
-    ctx.lineTo(sx + s / 2, sy + s / 2);
-    ctx.closePath();
-    ctx.fill();
-  } 
-  else if (o.type === 'hex') {
-    const s = o.size / 2;
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const a = Math.PI / 3 * i;
-      const x = sx + Math.cos(a) * s;
-      const y = sy + Math.sin(a) * s;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+    function toggleAutoFire() {
+      inputs.autoFire = !inputs.autoFire;
+      const btn = document.getElementById('autoFireBtn');
+      btn.textContent = 'Auto Fire: ' + (inputs.autoFire ? 'ON' : 'OFF');
+      btn.style.background = inputs.autoFire ? '#e91e63' : '#4caf50';
+      sendInputs();
     }
-    ctx.closePath();
-    ctx.fill();
-  }
 
-  // --- HP bar ---
-  const hpPerc = o.hp / o.maxHp;
+    function connect() {
+      socket = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
+      socket.onopen = () => console.log('ws open');
+      socket.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'welcome') {
+          clientId = msg.id;
+          pidEl.textContent = clientId.slice(0, 8);
+          if (msg.worldSize) worldSize = msg.worldSize;
+        } else if (msg.type === 'state') {
+          state = msg;
+          // cập nhật leaderboard
+          lbEl.innerHTML = "";
+          if (msg.leaderboard) {
+            msg.leaderboard.forEach(e => {
+              const li = document.createElement('li');
+              li.textContent = `${e.id.slice(0, 6)} — Lv${e.level} — ${e.score} pts`;
+              lbEl.appendChild(li);
+            });
+          }
+        } else if (msg.type === 'levelup') {
+          showUpgradeMenu(msg.level);
+        }
+      };
+      socket.onclose = () => setTimeout(connect, 1200);
+    }
+    connect();
 
-  if (o.type === 'rect') {
-    // Thanh máu nằm trong hình chữ nhật
-    ctx.fillStyle = '#000';
-    ctx.fillRect(sx + 4, sy + 4, o.w - 8, 5);
-    ctx.fillStyle = '#2ecc71';
-    ctx.fillRect(sx + 4, sy + 4, (o.w - 8) * hpPerc, 5);
-  } else {
-    // Tam giác & lục giác: thanh máu trên đầu
-    ctx.fillStyle = '#000';
-    ctx.fillRect(sx - 20, sy - 10, 40, 4);
-    ctx.fillStyle = '#2ecc71';
-    ctx.fillRect(sx - 20, sy - 10, 40 * hpPerc, 4);
-  }
-});
+    // INPUT
+    const inputs = {
+      up: false, down: false, left: false, right: false,
+      aimX: 0, aimY: 0, firing: false, autoFire: false
+    };
 
+    window.addEventListener('keydown', e => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+      }
+      if (e.key === 'w' || e.key === 'ArrowUp') inputs.up = true;
+      if (e.key === 's' || e.key === 'ArrowDown') inputs.down = true;
+      if (e.key === 'a' || e.key === 'ArrowLeft') inputs.left = true;
+      if (e.key === 'd' || e.key === 'ArrowRight') inputs.right = true;
+      if (e.key === 'f') inputs.autoFire = !inputs.autoFire;
+      sendInputs();
+    }, { passive: false });
 
-  // Bullets
-  ctx.fillStyle='#ffd86b';
-  state.bullets.forEach(b=>{ctx.beginPath();ctx.arc(b.x-viewport.x,b.y-viewport.y,4,0,Math.PI*2);ctx.fill();});
+    window.addEventListener('keyup', e => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+      }
+      if (e.key === 'w' || e.key === 'ArrowUp') inputs.up = false;
+      if (e.key === 's' || e.key === 'ArrowDown') inputs.down = false;
+      if (e.key === 'a' || e.key === 'ArrowLeft') inputs.left = false;
+      if (e.key === 'd' || e.key === 'ArrowRight') inputs.right = false;
+      sendInputs();
+    }, { passive: false });
 
-  // Players
-  state.players.forEach(p=>{
-    const sx=p.x-viewport.x, sy=p.y-viewport.y;
-    ctx.save();
-    ctx.translate(sx,sy);
-    ctx.rotate(p.angle||0);
-    ctx.fillStyle=(p.id===clientId)?'#4dd0e1':'#fff';
-    ctx.fillRect(-p.size,-p.size,p.size*2,p.size*2);
-    // nòng súng
-    ctx.fillStyle='#222';
-    ctx.fillRect(0,-5,p.size+15,10);
-    ctx.restore();
-    // HP bar
-    const hpPerc=p.hp/p.maxHp;
-    ctx.fillStyle='#000';ctx.fillRect(sx-25,sy-p.size-14,50,6);
-    ctx.fillStyle=hpPerc>0.5?'#2ecc71':(hpPerc>0.2?'#f1c40f':'#e74c3c');
-    ctx.fillRect(sx-25,sy-p.size-14,50*hpPerc,6);
-  });
- // === TÔ MỜ VÙNG NGOÀI BẢN ĐỒ ===
-ctx.save();
-ctx.fillStyle = 'rgba(200, 200, 200, 0.6)';
-ctx.beginPath();
-ctx.rect(0, 0, viewport.w, viewport.h);
-ctx.rect(worldSize.w - viewport.x, worldSize.h - viewport.y, -worldSize.w, -worldSize.h);
-ctx.fill('evenodd');
-ctx.restore();
+    canvas.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      inputs.aimX = viewport.x + (e.clientX - rect.left);
+      inputs.aimY = viewport.y + (e.clientY - rect.top);
+      sendInputs();
+    });
+    canvas.addEventListener('mousedown', () => { inputs.firing = true; sendInputs(); });
+    canvas.addEventListener('mouseup', () => { inputs.firing = false; sendInputs(); });
 
-// === VẼ VIỀN BẢN ĐỒ ===
-ctx.strokeStyle = '#444';
-ctx.lineWidth = 4;
-ctx.strokeRect(-viewport.x, -viewport.y, worldSize.w, worldSize.h);
+    function sendInputs() {
+      if (socket && socket.readyState === WebSocket.OPEN)
+        socket.send(JSON.stringify({ type: 'input', data: inputs }));
+    }
 
+    const viewport = { w: canvas.width, h: canvas.height, x: 0, y: 0 };
 
-  drawMini();
-  requestAnimationFrame(draw);
-}
-requestAnimationFrame(draw);
+    // Joystick logic
+    const joystick = document.getElementById('joystick');
+    const container = document.getElementById('joystickContainer');
+    let origin = { x: 0, y: 0 };
+    let joystickPos = { x: 0, y: 0 };
+    let active = false;
 
-// Mini-map
-function drawMini(){
-  mctx.clearRect(0,0,mini.width,mini.height);
-  mctx.fillStyle='#111';mctx.fillRect(0,0,mini.width,mini.height);
-  const sx=mini.width/worldSize.w,sy=mini.height/worldSize.h;
-  state.obstacles.forEach(o=>{
-    mctx.fillStyle='#555';
-    mctx.fillRect(o.x*sx,o.y*sy,6,6);
-  });
-  state.players.forEach(p=>{
-    mctx.fillStyle=(p.id===clientId)?'#4dd0e1':'#fff';
-    mctx.fillRect(p.x*sx-2,p.y*sy-2,4,4);
-  });
-}
+    container.addEventListener('touchstart', e => {
+      active = true;
+      const touch = e.touches[0];
+      const rect = container.getBoundingClientRect();
+      origin.x = rect.left + rect.width / 2;
+      origin.y = rect.top + rect.height / 2;
+      moveJoystick(touch.clientX, touch.clientY);
+    }, { passive: false });
 
-// Upgrade UI
-let currentUpgradeChoices=null;
-const ALL_UPGRADES=[
-  {id:'hpMax',label:'Max HP +',desc:'Tăng máu tối đa'},
-  {id:'regen',label:'Regen +',desc:'Tăng hồi máu/giây'},
-  {id:'speed',label:'Speed +',desc:'Tăng tốc chạy'},
-  {id:'fireRate',label:'Fire rate +',desc:'Tốc độ bắn nhanh hơn'},
-  {id:'damage',label:'Damage +',desc:'Tăng sát thương'},
-  {id:'bulletSpeed',label:'Bullet speed +',desc:'Tăng tốc đạn'},
-  {id:'bulletLife',label:'Range +',desc:'Tăng tầm bắn'}
-];
+    container.addEventListener('touchmove', e => {
+      if (!active) return;
+      const touch = e.touches[0];
+      moveJoystick(touch.clientX, touch.clientY);
+      e.preventDefault();
+    }, { passive: false });
 
-function showUpgradeMenu(level){
-  const choices=[];const pool=ALL_UPGRADES.slice();
-  for(let i=0;i<3;i++){const idx=Math.floor(Math.random()*pool.length);choices.push(pool.splice(idx,1)[0]);}
-  currentUpgradeChoices=choices;
-  upgradeButtonsDiv.innerHTML='';
-  choices.forEach((c,i)=>{
-    const btn=document.createElement('button');
-    btn.textContent=`${i+1}. ${c.label} — ${c.desc}`;
-    btn.onclick=()=>chooseUpgrade(c.id);
-    upgradeButtonsDiv.appendChild(btn);
-  });
-  upgradeUI.style.display='block';
-}
-function hideUpgradeMenu(){upgradeUI.style.display='none';}
-function chooseUpgrade(choiceId){
-  if(socket&&socket.readyState===WebSocket.OPEN)
-    socket.send(JSON.stringify({type:'upgrade',choice:choiceId}));
-  hideUpgradeMenu();
-}
-</script>
+    container.addEventListener('touchend', () => {
+      active = false;
+      joystick.style.transform = `translate(0px, 0px)`;
+      inputs.up = inputs.down = inputs.left = inputs.right = false;
+      sendInputs();
+    });
+
+    function moveJoystick(x, y) {
+      const dx = x - origin.x;
+      const dy = y - origin.y;
+      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 40);
+      const angle = Math.atan2(dy, dx);
+      joystickPos.x = Math.cos(angle) * dist;
+      joystickPos.y = Math.sin(angle) * dist;
+      joystick.style.transform = `translate(${joystickPos.x}px, ${joystickPos.y}px)`;
+
+      const dirX = Math.cos(angle);
+      const dirY = Math.sin(angle);
+
+      const threshold = 0.4;
+      inputs.up = dirY < -threshold;
+      inputs.down = dirY > threshold;
+      inputs.left = dirX < -threshold;
+      inputs.right = dirX > threshold;
+      sendInputs();
+    }
+
+    // DRAW LOOP
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const me = state.players.find(p => p.id === clientId);
+      if (me) {
+        viewport.x = me.x - viewport.w / 2;
+        viewport.y = me.y - viewport.h / 2;
+        lvlEl.textContent = me.level;
+        xpEl.textContent = Math.round(me.xp);
+        xpToEl.textContent = Math.round(me.xpToLevel);
+        hpEl.textContent = Math.round(me.hp);
+        scoreEl.textContent = Math.round(me.score);
+      }
+
+      // Grid
+      ctx.fillStyle = '#9aa0a6';
+      ctx.fillRect(0, 0, viewport.w, viewport.h);
+      ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+      for (let gx = Math.floor(viewport.x / 200) * 200; gx < viewport.x + viewport.w; gx += 200) {
+        ctx.beginPath(); ctx.moveTo(gx - viewport.x, 0); ctx.lineTo(gx - viewport.x, viewport.h); ctx.stroke();
+      }
+      for (let gy = Math.floor(viewport.y / 200) * 200; gy < viewport.y + viewport.h; gy += 200) {
+        ctx.beginPath(); ctx.moveTo(0, gy - viewport.y); ctx.lineTo(viewport.w, gy - viewport.y); ctx.stroke();
+      }
+
+      // Obstacles
+      state.obstacles.forEach(o => {
+        if (o.hp <= 0) return;
+        const sx = o.x - viewport.x;
+        const sy = o.y - viewport.y;
+        ctx.fillStyle = '#444';
+        if (o.type === 'rect') {
+          ctx.fillRect(sx, sy, o.w, o.h);
+        } else if (o.type === 'tri') {
+          const s = o.size;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy - s / 2);
+          ctx.lineTo(sx - s / 2, sy + s / 2);
+          ctx.lineTo(sx + s / 2, sy + s / 2);
+          ctx.closePath();
+          ctx.fill();
+        } else if (o.type === 'hex') {
+          const s = o.size / 2;
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) {
+            const a = Math.PI / 3 * i;
+            const x = sx + Math.cos(a) * s;
+            const y = sy + Math.sin(a) * s;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.fill();
+        }
+        const hpPerc = o.hp / o.maxHp;
+        if (o.type === 'rect') {
+          ctx.fillStyle = '#000';
+          ctx.fillRect(sx + 4, sy + 4, o.w - 8, 5);
+          ctx.fillStyle = '#2ecc71';
+          ctx.fillRect(sx + 4, sy + 4, (o.w - 8) * hpPerc, 5);
+        } else {
+          ctx.fillStyle = '#000';
+          ctx.fillRect(sx - 20, sy - 10, 40, 4);
+          ctx.fillStyle = '#2ecc71';
+          ctx.fillRect(sx - 20, sy - 10, 40 * hpPerc, 4);
+        }
+      });
+
+      // Bullets
+      ctx.fillStyle = '#ffd86b';
+      state.bullets.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x - viewport.x, b.y - viewport.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Players
+      state.players.forEach(p => {
+        const sx = p.x - viewport.x, sy = p.y - viewport.y;
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(p.angle || 0);
+        ctx.fillStyle = (p.id === clientId) ? '#4dd0e1' : '#fff';
+        ctx.fillRect(-p.size, -p.size, p.size * 2, p.size * 2);
+        // barrel
+        ctx.fillStyle = '#222';
+        ctx.fillRect(0, -5, p.size + 15, 10);
+        ctx.restore();
+        const hpPerc = p.hp / p.maxHp;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(sx - 25, sy - p.size - 14, 50, 6);
+        ctx.fillStyle = hpPerc > 0.5 ? '#2ecc71' : (hpPerc > 0.2 ? '#f1c40f' : '#e74c3c');
+        ctx.fillRect(sx - 25, sy - p.size - 14, 50 * hpPerc, 6);
+      });
+
+      // Mask outside world
+      ctx.save();
+      ctx.fillStyle = 'rgba(200,200,200,0.6)';
+      ctx.beginPath();
+      ctx.rect(0, 0, viewport.w, viewport.h);
+      ctx.rect(worldSize.w - viewport.x, worldSize.h - viewport.y, -worldSize.w, -worldSize.h);
+      ctx.fill('evenodd');
+      ctx.restore();
+
+      // Border of world
+      ctx.strokeStyle = '#444';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(-viewport.x, -viewport.y, worldSize.w, worldSize.h);
+
+      drawMini();
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+
+    // Mini-map
+    function drawMini() {
+      mctx.clearRect(0, 0, mini.width, mini.height);
+      mctx.fillStyle = '#111';
+      mctx.fillRect(0, 0, mini.width, mini.height);
+      const sx = mini.width / worldSize.w, sy = mini.height / worldSize.h;
+      state.obstacles.forEach(o => {
+        mctx.fillStyle = '#555';
+        mctx.fillRect(o.x * sx, o.y * sy, 6, 6);
+      });
+      state.players.forEach(p => {
+        mctx.fillStyle = (p.id === clientId) ? '#4dd0e1' : '#fff';
+        mctx.fillRect(p.x * sx - 2, p.y * sy - 2, 4, 4);
+      });
+    }
+
+    // Upgrade UI
+    let currentUpgradeChoices = null;
+    const ALL_UPGRADES = [
+      { id: 'hpMax', label: 'Max HP +', desc: 'Tăng máu tối đa' },
+      { id: 'regen', label: 'Regen +', desc: 'Tăng hồi máu/giây' },
+      { id: 'speed', label: 'Speed +', desc: 'Tăng tốc chạy' },
+      { id: 'fireRate', label: 'Fire rate +', desc: 'Tốc độ bắn nhanh hơn' },
+      { id: 'damage', label: 'Damage +', desc: 'Tăng sát thương' },
+      { id: 'bulletSpeed', label: 'Bullet speed +', desc: 'Tăng tốc đạn' },
+      { id: 'bulletLife', label: 'Range +', desc: 'Tăng tầm bắn' }
+    ];
+
+    function showUpgradeMenu(level) {
+      const choices = [];
+      const pool = ALL_UPGRADES.slice();
+      for (let i = 0; i < 3; i++) {
+        const idx = Math.floor(Math.random() * pool.length);
+        choices.push(pool.splice(idx, 1)[0]);
+      }
+      currentUpgradeChoices = choices;
+      upgradeButtonsDiv.innerHTML = '';
+      choices.forEach((c, i) => {
+        const btn = document.createElement('button');
+        btn.textContent = `${i + 1}. ${c.label} — ${c.desc}`;
+        btn.onclick = () => chooseUpgrade(c.id);
+        upgradeButtonsDiv.appendChild(btn);
+      });
+      upgradeUI.style.display = 'block';
+    }
+
+    function hideUpgradeMenu() { upgradeUI.style.display = 'none'; }
+    function chooseUpgrade(choiceId) {
+      if (socket && socket.readyState === WebSocket.OPEN)
+        socket.send(JSON.stringify({ type: 'upgrade', choice: choiceId }));
+      hideUpgradeMenu();
+    }
+  </script>
 </body>
+
 </html>

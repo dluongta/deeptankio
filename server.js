@@ -25,13 +25,13 @@ function spawnObstacles(count = 80) {
     const r = Math.random();
     const o = { id: uuidv4(), x: Math.random() * WORLD_W, y: Math.random() * WORLD_H };
     if (r < 0.5) {
-  o.type = "rect";
-  o.w = 60 + Math.random() * 60;
-  o.h = 60 + Math.random() * 60;
-} else {
-  o.type = "hex";
-  o.size = 60 + Math.random() * 50;
-}
+      o.type = "rect";
+      o.w = 60 + Math.random() * 60;
+      o.h = 60 + Math.random() * 60;
+    } else {
+      o.type = "hex";
+      o.size = 60 + Math.random() * 50;
+    }
 
     o.maxHp = 120 + Math.random() * 150;
     o.hp = o.maxHp;
@@ -59,7 +59,7 @@ function createPlayer(id) {
     bulletLife: 1.8,
     bulletSpeed: 850,
     lastShot: 0,
-    inputs: { up:false,down:false,left:false,right:false,aimX:0,aimY:0,firing:false,autoFire:false },
+    inputs: { up: false, down: false, left: false, right: false, aimX: 0, aimY: 0, firing: false, autoFire: false },
   };
 }
 
@@ -84,11 +84,11 @@ function createBullet(owner, x, y, angle, speed, life, dmg) {
     id: uuidv4(),
     ownerId: owner.id,
     x, y,
-    vx: Math.cos(angle)*speed,
-    vy: Math.sin(angle)*speed,
-    size:5,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    size: 5,
     life,
-    damage:dmg
+    damage: dmg
   };
 }
 
@@ -97,16 +97,16 @@ function pointInObstacle(px, py, o) {
   if (o.type === "rect") return px > o.x && px < o.x + o.w && py > o.y && py < o.y + o.h;
   if (o.type === "tri") {
     const s = o.size;
-    const x1=o.x,y1=o.y-s/2,x2=o.x-s/2,y2=o.y+s/2,x3=o.x+s/2,y3=o.y+s/2;
-    const d=(y2-y3)*(x1-x3)+(x3-x2)*(y1-y3);
-    const a=((y2-y3)*(px-x3)+(x3-x2)*(py-y3))/d;
-    const b=((y3-y1)*(px-x3)+(x1-x3)*(py-y3))/d;
-    const c=1-a-b;
-    return a>=0&&b>=0&&c>=0;
+    const x1 = o.x, y1 = o.y - s / 2, x2 = o.x - s / 2, y2 = o.y + s / 2, x3 = o.x + s / 2, y3 = o.y + s / 2;
+    const d = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+    const a = ((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) / d;
+    const b = ((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) / d;
+    const c = 1 - a - b;
+    return a >= 0 && b >= 0 && c >= 0;
   }
   if (o.type === "hex") {
-    const s=o.size/2,dx=Math.abs(px-o.x),dy=Math.abs(py-o.y);
-    return dx<=s && dy<=s*0.866;
+    const s = o.size / 2, dx = Math.abs(px - o.x), dy = Math.abs(py - o.y);
+    return dx <= s && dy <= s * 0.866;
   }
   return false;
 }
@@ -123,7 +123,7 @@ wss.on("connection", (ws) => {
   world.players[id] = p;
   ws.id = id;
 
-  ws.send(JSON.stringify({ type:"welcome", id, worldSize:{w:WORLD_W,h:WORLD_H} }));
+  ws.send(JSON.stringify({ type: "welcome", id, worldSize: { w: WORLD_W, h: WORLD_H } }));
 
   ws.on("message", (raw) => {
     try {
@@ -141,29 +141,29 @@ wss.on("connection", (ws) => {
         if (c === "bulletSpeed") pl.bulletSpeed += 100;
         if (c === "bulletLife") pl.bulletLife += 0.2;
       }
-    } catch {}
+    } catch { }
   });
 
   ws.on("close", () => delete world.players[id]);
 });
 
 // --- Game Loop ---
-let last = Date.now()/1000;
+let last = Date.now() / 1000;
 function update() {
-  const now = Date.now()/1000;
+  const now = Date.now() / 1000;
   const dt = Math.min(0.1, now - last);
   last = now;
 
   for (const id in world.players) {
     const p = world.players[id];
-    let dx=0,dy=0;
+    let dx = 0, dy = 0;
     if (p.inputs.up) dy -= 1;
     if (p.inputs.down) dy += 1;
     if (p.inputs.left) dx -= 1;
     if (p.inputs.right) dx += 1;
-    const len = Math.hypot(dx,dy)||1;
-    p.x += (dx/len)*p.speed*dt;
-    p.y += (dy/len)*p.speed*dt;
+    const len = Math.hypot(dx, dy) || 1;
+    p.x += (dx / len) * p.speed * dt;
+    p.y += (dy / len) * p.speed * dt;
     p.x = Math.max(0, Math.min(WORLD_W, p.x));
     p.y = Math.max(0, Math.min(WORLD_H, p.y));
 
@@ -222,7 +222,7 @@ function update() {
     const wantFire = p.inputs.firing || p.inputs.autoFire;
     if (wantFire && now - p.lastShot > p.fireCooldown) {
       p.lastShot = now;
-      const b = createBullet(p, p.x + Math.cos(p.angle)*(p.size+10), p.y + Math.sin(p.angle)*(p.size+10),
+      const b = createBullet(p, p.x + Math.cos(p.angle) * (p.size + 10), p.y + Math.sin(p.angle) * (p.size + 10),
         p.angle, p.bulletSpeed, p.bulletLife, p.damage);
       world.bullets.push(b);
     }
@@ -236,12 +236,12 @@ function update() {
     b.x += b.vx * dt;
     b.y += b.vy * dt;
     b.life -= dt;
-    if (b.life <= 0) { world.bullets.splice(i,1); continue; }
+    if (b.life <= 0) { world.bullets.splice(i, 1); continue; }
 
     let hit = false;
 
     for (const o of world.obstacles) {
-      if (pointInObstacle(b.x,b.y,o)) {
+      if (pointInObstacle(b.x, b.y, o)) {
         if (o.hp <= 0) continue;
         o.hp -= b.damage;
         hit = true;
@@ -254,10 +254,10 @@ function update() {
             if (owner.xp >= owner.xpToLevel) {
               owner.level++;
               owner.xp -= owner.xpToLevel;
-              owner.xpToLevel = Math.round(owner.xpToLevel*1.3);
-              wss.clients.forEach(ws=>{
-                if(ws.id===owner.id && ws.readyState===1)
-                  ws.send(JSON.stringify({type:"levelup",level:owner.level}));
+              owner.xpToLevel = Math.round(owner.xpToLevel * 1.3);
+              wss.clients.forEach(ws => {
+                if (ws.id === owner.id && ws.readyState === 1)
+                  ws.send(JSON.stringify({ type: "levelup", level: owner.level }));
               });
             }
           }
@@ -284,22 +284,22 @@ function update() {
       }
     }
 
-    if (hit) world.bullets.splice(i,1);
+    if (hit) world.bullets.splice(i, 1);
   }
 }
 
-setInterval(update, 1000/TICK_RATE);
+setInterval(update, 1000 / TICK_RATE);
 
-setInterval(()=>{
-  const sorted = Object.values(world.players).sort((a,b)=>b.score - a.score).slice(0,5);
+setInterval(() => {
+  const sorted = Object.values(world.players).sort((a, b) => b.score - a.score).slice(0, 5);
   const payload = JSON.stringify({
-    type:"state",
-    players:Object.values(world.players),
-    bullets:world.bullets,
-    obstacles:world.obstacles,
-    leaderboard: sorted.map(p=>({id:p.id,score:p.score,level:p.level}))
+    type: "state",
+    players: Object.values(world.players),
+    bullets: world.bullets,
+    obstacles: world.obstacles,
+    leaderboard: sorted.map(p => ({ id: p.id, score: p.score, level: p.level }))
   });
-  wss.clients.forEach(c=>{ if(c.readyState===1) c.send(payload); });
-}, 1000/BROADCAST_RATE);
+  wss.clients.forEach(c => { if (c.readyState === 1) c.send(payload); });
+}, 1000 / BROADCAST_RATE);
 
-server.listen(3000, ()=>console.log("Server running at http://localhost:3000"));
+server.listen(3000, () => console.log("Server running at http://localhost:3000"));
