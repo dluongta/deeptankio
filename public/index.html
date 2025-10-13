@@ -261,6 +261,7 @@
 
     const upgradeUI = document.getElementById('upgradeUI');
     const upgradeButtonsDiv = document.getElementById('upgradeButtons');
+    let joystickRightActive = false;
 
     let clientId = null;
     let worldSize = { w: 3000, h: 2000 };
@@ -305,21 +306,25 @@
       resetJoystickRight();
     }, { passive: false });
 
-    function moveJoystickRight(clientX, clientY) {
-      const maxDistance = containerRight.clientWidth / 2;
-      let deltaX = clientX - originR.x;
-      let deltaY = clientY - originR.y;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      if (distance > maxDistance) {
-        const angle = Math.atan2(deltaY, deltaX);
-        deltaX = Math.cos(angle) * maxDistance;
-        deltaY = Math.sin(angle) * maxDistance;
+    function moveJoystickRight(x, y) {
+      const dx = x - originR.x;
+      const dy = y - originR.y;
+      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 40);
+      const angle = Math.atan2(dy, dx);
+      joystickPosR.x = Math.cos(angle) * dist;
+      joystickPosR.y = Math.sin(angle) * dist;
+      joystickRight.style.transform = `translate(${joystickPosR.x}px, ${joystickPosR.y}px)`;
+
+      const player = state.players.find(p => p.id === clientId);
+      if (player) {
+        inputs.aimX = player.x + Math.cos(angle) * 100;
+        inputs.aimY = player.y + Math.sin(angle) * 100;
+        inputs.firing = true;
+        joystickRightActive = true;
+        sendInputs();
       }
-      joystickRight.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-      joystickPosR = { x: deltaX / maxDistance, y: deltaY / maxDistance };
-      // Gửi dữ liệu hướng bắn tới server hoặc xử lý tại client
-      // Ví dụ: sendAimDirection(joystickPosR.x, joystickPosR.y);
     }
+
 
     function resetJoystickRight() {
       joystickRight.style.transform = 'translate(0, 0)';
@@ -394,11 +399,13 @@
     }, { passive: false });
 
     canvas.addEventListener('mousemove', e => {
+      if (joystickRightActive) return; // Ưu tiên joystick phải
       const rect = canvas.getBoundingClientRect();
       inputs.aimX = viewport.x + (e.clientX - rect.left);
       inputs.aimY = viewport.y + (e.clientY - rect.top);
       sendInputs();
     });
+
     canvas.addEventListener('mousedown', () => { inputs.firing = true; sendInputs(); });
     canvas.addEventListener('mouseup', () => { inputs.firing = false; sendInputs(); });
 
@@ -686,10 +693,12 @@
 
     containerRight.addEventListener('touchend', () => {
       activeR = false;
+      joystickRightActive = false;
       joystickRight.style.transform = `translate(0px, 0px)`;
       inputs.firing = false;
       sendInputs();
     });
+
 
   </script>
 </body>
