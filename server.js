@@ -242,6 +242,7 @@ function update() {
 
     for (const o of world.obstacles) {
       if (pointInObstacle(b.x,b.y,o)) {
+        if (o.hp <= 0) continue;
         o.hp -= b.damage;
         hit = true;
         if (o.hp <= 0) {
@@ -301,4 +302,4 @@ setInterval(()=>{
   wss.clients.forEach(c=>{ if(c.readyState===1) c.send(payload); });
 }, 1000/BROADCAST_RATE);
 
-server.listen(3000, ()=>console.log("✅ Server running at http://localhost:3000"));
+server.listen(3000, ()=>console.log("Server running at http://localhost:3000"));

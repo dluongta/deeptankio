@@ -242,6 +242,20 @@ state.obstacles.forEach(o => {
     ctx.fillStyle=hpPerc>0.5?'#2ecc71':(hpPerc>0.2?'#f1c40f':'#e74c3c');
     ctx.fillRect(sx-25,sy-p.size-14,50*hpPerc,6);
   });
+ // === TÔ MỜ VÙNG NGOÀI BẢN ĐỒ ===
+ctx.save();
+ctx.fillStyle = 'rgba(200, 200, 200, 0.6)';
+ctx.beginPath();
+ctx.rect(0, 0, viewport.w, viewport.h);
+ctx.rect(worldSize.w - viewport.x, worldSize.h - viewport.y, -worldSize.w, -worldSize.h);
+ctx.fill('evenodd');
+ctx.restore();
+
+// === VẼ VIỀN BẢN ĐỒ ===
+ctx.strokeStyle = '#444';
+ctx.lineWidth = 4;
+ctx.strokeRect(-viewport.x, -viewport.y, worldSize.w, worldSize.h);
+
 
   drawMini();
   requestAnimationFrame(draw);
