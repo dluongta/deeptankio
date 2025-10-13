@@ -113,19 +113,6 @@
       justify-content: center;
     }
 
-    #joystickRightContainer {
-      position: fixed;
-      bottom: 50px;
-      right: 100px;
-      width: 160px;
-      height: 160px;
-      background: rgba(255, 255, 255, 0.07);
-      border-radius: 50%;
-      z-index: 999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
 
     #joystick {
       width: 80px;
@@ -134,12 +121,6 @@
       border-radius: 50%;
     }
 
-    #joystickRight {
-      width: 80px;
-      height: 80px;
-      background: #ff8a65;
-      border-radius: 50%;
-    }
 
 
     #autoFireBtn {
@@ -155,8 +136,8 @@
       border-radius: 6px;
     }
 
-    #joystickContainer,
-    #joystickRightContainer {
+    #joystickContainer
+    {
       touch-action: none;
       -ms-touch-action: none;
     }
@@ -164,7 +145,7 @@
     /* Ẩn joystick & nút trên PC */
     @media (hover: hover) and (pointer: fine) {
 
-      #joystickRightContainer,
+      
       #autoFireBtn {
         display: none;
       }
@@ -190,17 +171,6 @@
       z-index: 1000;
     }
 
-    #joystickRightContainer {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
-      touch-action: none;
-      z-index: 1000;
-    }
   </style>
 </head>
 
@@ -236,10 +206,9 @@
     <div id="joystick"></div>
   </div>
 
-  <!-- Joystick phải (dùng để điều khiển hướng bắn) -->
-  <div id="joystickRightContainer">
+  <!-- <div id="joystickRightContainer">
     <div id="joystickRight"></div>
-  </div>
+  </div> -->
 
   <!-- Nút bật/tắt auto-fire -->
   <button id="autoFireBtn" onclick="toggleAutoFire()">Auto Fire: OFF</button>
@@ -261,77 +230,17 @@
 
     const upgradeUI = document.getElementById('upgradeUI');
     const upgradeButtonsDiv = document.getElementById('upgradeButtons');
-    let joystickRightActive = false;
 
     let clientId = null;
     let worldSize = { w: 3000, h: 2000 };
 
     let state = { players: [], bullets: [], obstacles: [] };
     let socket;
-    // === Joystick phải ===
-    const joystickRight = document.getElementById('joystickRight');
-    const containerRight = document.getElementById('joystickRightContainer');
 
     // Joystick trái
     let origin = { x: 0, y: 0 };
     let joystickPos = { x: 0, y: 0 };
     let active = false;
-
-    // Joystick phải
-    let originR = { x: 0, y: 0 };
-    let joystickPosR = { x: 0, y: 0 };
-    let activeR = false;
-
-
-    containerRight.addEventListener('touchstart', e => {
-      e.preventDefault();
-      activeR = true;
-      const touch = e.touches[0];
-      const rect = containerRight.getBoundingClientRect();
-      originR.x = rect.left + rect.width / 2;
-      originR.y = rect.top + rect.height / 2;
-      moveJoystickRight(touch.clientX, touch.clientY);
-    }, { passive: false });
-
-    containerRight.addEventListener('touchmove', e => {
-      if (!activeR) return;
-      e.preventDefault();
-      const touch = e.touches[0];
-      moveJoystickRight(touch.clientX, touch.clientY);
-    }, { passive: false });
-
-    containerRight.addEventListener('touchend', e => {
-      e.preventDefault();
-      activeR = false;
-      resetJoystickRight();
-    }, { passive: false });
-
-    function moveJoystickRight(x, y) {
-      const dx = x - originR.x;
-      const dy = y - originR.y;
-      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 40);
-      const angle = Math.atan2(dy, dx);
-      joystickPosR.x = Math.cos(angle) * dist;
-      joystickPosR.y = Math.sin(angle) * dist;
-      joystickRight.style.transform = `translate(${joystickPosR.x}px, ${joystickPosR.y}px)`;
-
-      const player = state.players.find(p => p.id === clientId);
-      if (player) {
-        inputs.aimX = player.x + Math.cos(angle) * 100;
-        inputs.aimY = player.y + Math.sin(angle) * 100;
-        inputs.firing = true;
-        joystickRightActive = true;
-        sendInputs();
-      }
-    }
-
-
-    function resetJoystickRight() {
-      joystickRight.style.transform = 'translate(0, 0)';
-      joystickPosR = { x: 0, y: 0 };
-      // Gửi tín hiệu dừng bắn hoặc hướng bắn trung lập
-    }
-
 
     function toggleAutoFire() {
       inputs.autoFire = !inputs.autoFire;
@@ -399,7 +308,6 @@
     }, { passive: false });
 
     canvas.addEventListener('mousemove', e => {
-      if (joystickRightActive) return; // Ưu tiên joystick phải
       const rect = canvas.getBoundingClientRect();
       inputs.aimX = viewport.x + (e.clientX - rect.left);
       inputs.aimY = viewport.y + (e.clientY - rect.top);
@@ -441,28 +349,38 @@
       active = false;
       joystick.style.transform = `translate(0px, 0px)`;
       inputs.up = inputs.down = inputs.left = inputs.right = false;
+      inputs.firing = false;
       sendInputs();
     });
 
-    function moveJoystick(x, y) {
-      const dx = x - origin.x;
-      const dy = y - origin.y;
-      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 40);
-      const angle = Math.atan2(dy, dx);
-      joystickPos.x = Math.cos(angle) * dist;
-      joystickPos.y = Math.sin(angle) * dist;
-      joystick.style.transform = `translate(${joystickPos.x}px, ${joystickPos.y}px)`;
+function moveJoystick(x, y) {
+  const dx = x - origin.x;
+  const dy = y - origin.y;
+  const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 40);
+  const angle = Math.atan2(dy, dx);
+  joystickPos.x = Math.cos(angle) * dist;
+  joystickPos.y = Math.sin(angle) * dist;
+  joystick.style.transform = `translate(${joystickPos.x}px, ${joystickPos.y}px)`;
 
-      const dirX = Math.cos(angle);
-      const dirY = Math.sin(angle);
+  const dirX = Math.cos(angle);
+  const dirY = Math.sin(angle);
 
-      const threshold = 0.4;
-      inputs.up = dirY < -threshold;
-      inputs.down = dirY > threshold;
-      inputs.left = dirX < -threshold;
-      inputs.right = dirX > threshold;
-      sendInputs();
-    }
+  const threshold = 0.4;
+  inputs.up = dirY < -threshold;
+  inputs.down = dirY > threshold;
+  inputs.left = dirX < -threshold;
+  inputs.right = dirX > threshold;
+
+  const player = state.players.find(p => p.id === clientId);
+  if (player) {
+    inputs.aimX = player.x + dirX * 100;
+    inputs.aimY = player.y + dirY * 100;
+    inputs.firing = true;
+  }
+
+  sendInputs();
+}
+
 
     // DRAW LOOP
     function draw() {
