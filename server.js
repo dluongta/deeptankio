@@ -17,6 +17,7 @@ const WORLD_W = 3000, WORLD_H = 2000;
 const TICK_RATE = 30, BROADCAST_RATE = 20;
 
 const world = { players: {}, bullets: [], obstacles: [] };
+const respawnTimers = new Map(); 
 
 function spawnObstacles(count = 80) {
   world.obstacles = [];
@@ -38,6 +39,31 @@ function spawnObstacles(count = 80) {
   }
 }
 spawnObstacles();
+function respawnObstacle(id) {
+  const r = Math.random();
+  const newObs = {
+    id: id, 
+    x: Math.random() * WORLD_W,
+    y: Math.random() * WORLD_H
+  };
+  if (r < 0.5) {
+    newObs.type = "rect";
+    newObs.w = 60 + Math.random() * 60;
+    newObs.h = 60 + Math.random() * 60;
+  } else {
+    newObs.type = "hex";
+    newObs.size = 60 + Math.random() * 50;
+  }
+  newObs.maxHp = 120 + Math.random() * 150;
+  newObs.hp = newObs.maxHp;
+
+  const index = world.obstacles.findIndex(o => o.id === id);
+  if (index !== -1) {
+    world.obstacles[index] = newObs;
+  }
+  respawnTimers.delete(id);
+}
+
 
 function createPlayer(id) {
   return {
@@ -247,6 +273,9 @@ function update() {
               });
             }
           }
+          
+          respawnTimers.set(o.id, Date.now() / 1000);
+
         }
         break;
       }
@@ -272,6 +301,12 @@ function update() {
 
     if (hit) world.bullets.splice(i, 1);
   }
+  for (const [id, time] of respawnTimers.entries()) {
+    const nowSec = Date.now() / 1000;
+    if (nowSec >= time) {
+      respawnObstacle(id);
+    }
+  }
 }
 
 setInterval(update, 1000 / TICK_RATE);
@@ -284,7 +319,7 @@ setInterval(() => {
     bullets: world.bullets,
     obstacles: world.obstacles,
     leaderboard: sorted.map(p => ({ id: p.id, score: p.score, level: p.level }))
-  });
+  }); 
   wss.clients.forEach(c => { if (c.readyState === 1) c.send(payload); });
 }, 1000 / BROADCAST_RATE);
 
