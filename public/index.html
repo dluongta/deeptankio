@@ -245,7 +245,6 @@
           if (msg.worldSize) worldSize = msg.worldSize;
         } else if (msg.type === 'state') {
           state = msg;
-          // cập nhật leaderboard
           lbEl.innerHTML = "";
           if (msg.leaderboard) {
             msg.leaderboard.forEach(e => {
@@ -308,7 +307,6 @@
 
     const viewport = { w: canvas.width, h: canvas.height, x: 0, y: 0 };
 
-    // Joystick logic
     const joystick = document.getElementById('joystick');
     const container = document.getElementById('joystickContainer');
 
@@ -463,7 +461,6 @@
       ctx.fill('evenodd');
       ctx.restore();
 
-      // Border of world
       ctx.strokeStyle = '#444';
       ctx.lineWidth = 4;
       ctx.strokeRect(-viewport.x, -viewport.y, worldSize.w, worldSize.h);
@@ -473,7 +470,6 @@
     }
     requestAnimationFrame(draw);
 
-    // Mini-map
     function drawMini() {
       mctx.clearRect(0, 0, mini.width, mini.height);
       mctx.fillStyle = '#111';
