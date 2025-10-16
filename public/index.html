@@ -18,9 +18,7 @@
     html,
     body {
       overflow: hidden;
-      /* Ẩn thanh cuộn */
       touch-action: none;
-      /* Ngăn cử chỉ vuốt cuộn mặc định */
     }
 
 
@@ -98,7 +96,6 @@
       margin-bottom: 6px
     }
 
-    /* Joystick style */
     #joystickContainer {
       position: fixed;
       bottom: 50px;
@@ -142,14 +139,12 @@
       -ms-touch-action: none;
     }
 
-    /* Ẩn joystick & nút trên PC */
     @media (hover: hover) and (pointer: fine) {
       #autoFireBtn {
         display: none;
       }
     }
 
-    /* Ẩn joystick khi dùng chuột (PC) */
     @media (hover: hover) and (pointer: fine) {
       #joystickContainer {
         display: none;
@@ -161,7 +156,6 @@
       bottom: 20px;
       left: 20px;
       width: 120px;
-      /* bạn có thể chỉnh size */
       height: 120px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.1);
@@ -198,16 +192,10 @@
     <div id="upgradeButtons"></div>
   </div>
 
-  <!-- Joystick container -->
   <div id="joystickContainer">
     <div id="joystick"></div>
   </div>
 
-  <!-- <div id="joystickRightContainer">
-    <div id="joystickRight"></div>
-  </div> -->
-
-  <!-- Nút bật/tắt auto-fire -->
   <button id="autoFireBtn" onclick="toggleAutoFire()">Auto Fire: OFF</button>
 
 
@@ -234,7 +222,6 @@
     let state = { players: [], bullets: [], obstacles: [] };
     let socket;
 
-    // Joystick trái
     let origin = { x: 0, y: 0 };
     let joystickPos = { x: 0, y: 0 };
     let active = false;
@@ -379,7 +366,6 @@
     }
 
 
-    // DRAW LOOP
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const me = state.players.find(p => p.id === clientId);
@@ -393,7 +379,6 @@
         scoreEl.textContent = Math.round(me.score);
       }
 
-      // Grid
       ctx.fillStyle = '#9aa0a6';
       ctx.fillRect(0, 0, viewport.w, viewport.h);
       ctx.strokeStyle = 'rgba(0,0,0,0.06)';
@@ -404,7 +389,6 @@
         ctx.beginPath(); ctx.moveTo(0, gy - viewport.y); ctx.lineTo(viewport.w, gy - viewport.y); ctx.stroke();
       }
 
-      // Obstacles
       state.obstacles.forEach(o => {
         if (o.hp <= 0) return;
         const sx = o.x - viewport.x;
@@ -447,7 +431,6 @@
         }
       });
 
-      // Bullets
       ctx.fillStyle = '#ffd86b';
       state.bullets.forEach(b => {
         ctx.beginPath();
@@ -455,7 +438,6 @@
         ctx.fill();
       });
 
-      // Players
       state.players.forEach(p => {
         const sx = p.x - viewport.x, sy = p.y - viewport.y;
         ctx.save();
@@ -463,7 +445,6 @@
         ctx.rotate(p.angle || 0);
         ctx.fillStyle = (p.id === clientId) ? '#4dd0e1' : '#fff';
         ctx.fillRect(-p.size, -p.size, p.size * 2, p.size * 2);
-        // barrel
         ctx.fillStyle = '#222';
         ctx.fillRect(0, -5, p.size + 15, 10);
         ctx.restore();
@@ -474,7 +455,6 @@
         ctx.fillRect(sx - 25, sy - p.size - 14, 50 * hpPerc, 6);
       });
 
-      // Mask outside world
       ctx.save();
       ctx.fillStyle = 'rgba(200,200,200,0.6)';
       ctx.beginPath();
@@ -509,7 +489,6 @@
       });
     }
 
-    // Upgrade UI
     let currentUpgradeChoices = null;
     const ALL_UPGRADES = [
       { id: 'hpMax', label: 'Max HP +', desc: 'Tăng máu tối đa' },
@@ -557,12 +536,10 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // Chặn vuốt lên xuống của trình duyệt
     window.addEventListener('touchmove', function (e) {
       e.preventDefault();
     }, { passive: false });
 
-    // Thêm preventDefault cho touchstart joystick trái và phải
     container.addEventListener('touchstart', e => {
       e.preventDefault();
       active = true;
@@ -595,7 +572,7 @@
       if (player) {
         inputs.aimX = player.x + Math.cos(angle) * 100;
         inputs.aimY = player.y + Math.sin(angle) * 100;
-        inputs.firing = true; // tự động bắn nếu có điều hướng
+        inputs.firing = true; 
         sendInputs();
       }
     }

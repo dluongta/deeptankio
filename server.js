@@ -18,7 +18,6 @@ const TICK_RATE = 30, BROADCAST_RATE = 20;
 
 const world = { players: {}, bullets: [], obstacles: [] };
 
-// --- Spawn obstacles ---
 function spawnObstacles(count = 80) {
   world.obstacles = [];
   for (let i = 0; i < count; i++) {
@@ -40,7 +39,6 @@ function spawnObstacles(count = 80) {
 }
 spawnObstacles();
 
-// --- Player ---
 function createPlayer(id) {
   return {
     id,
@@ -78,7 +76,6 @@ function resetPlayer(p) {
   p.y = Math.random() * WORLD_H;
 }
 
-// --- Bullets ---
 function createBullet(owner, x, y, angle, speed, life, dmg) {
   return {
     id: uuidv4(),
@@ -92,7 +89,6 @@ function createBullet(owner, x, y, angle, speed, life, dmg) {
   };
 }
 
-// --- Collision ---
 function pointInObstacle(px, py, o) {
   if (o.type === "rect") return px > o.x && px < o.x + o.w && py > o.y && py < o.y + o.h;
   if (o.type === "tri") {
@@ -116,7 +112,6 @@ function playersCollide(p1, p2) {
   return Math.hypot(dx, dy) < p1.size + p2.size;
 }
 
-// --- WS handling ---
 wss.on("connection", (ws) => {
   const id = uuidv4();
   const p = createPlayer(id);
@@ -147,7 +142,6 @@ wss.on("connection", (ws) => {
   ws.on("close", () => delete world.players[id]);
 });
 
-// --- Game Loop ---
 let last = Date.now() / 1000;
 function update() {
   const now = Date.now() / 1000;
@@ -167,16 +161,13 @@ function update() {
     p.x = Math.max(0, Math.min(WORLD_W, p.x));
     p.y = Math.max(0, Math.min(WORLD_H, p.y));
 
-    // xoay nòng
     if (p.inputs.aimX && p.inputs.aimY)
       p.angle = Math.atan2(p.inputs.aimY - p.y, p.inputs.aimX - p.x);
 
-    // === Va chạm vật thể chính xác ===
     for (const o of world.obstacles) {
       if (o.hp <= 0) continue;
 
       if (o.type === "rect") {
-        // kiểm tra overlap chính xác
         const closestX = Math.max(o.x, Math.min(p.x, o.x + o.w));
         const closestY = Math.max(o.y, Math.min(p.y, o.y + o.h));
         const distX = p.x - closestX;
@@ -192,7 +183,6 @@ function update() {
           p.y += ny * overlap;
         }
       } else if (pointInObstacle(p.x, p.y, o)) {
-        // tam giác & lục giác
         p.hp -= 25 * dt;
         const dx = p.x - o.x;
         const dy = p.y - o.y;
@@ -202,7 +192,6 @@ function update() {
       }
     }
 
-    // === Va chạm tank vs tank ===
     for (const id2 in world.players) {
       if (id === id2) continue;
       const p2 = world.players[id2];
@@ -215,10 +204,8 @@ function update() {
       }
     }
 
-    // regen
     p.hp = Math.min(p.hp + p.regen * dt, p.maxHp);
 
-    // bắn
     const wantFire = p.inputs.firing || p.inputs.autoFire;
     if (wantFire && now - p.lastShot > p.fireCooldown) {
       p.lastShot = now;
@@ -230,7 +217,6 @@ function update() {
     if (p.hp <= 0) resetPlayer(p);
   }
 
-  // --- bullets ---
   for (let i = world.bullets.length - 1; i >= 0; i--) {
     const b = world.bullets[i];
     b.x += b.vx * dt;
