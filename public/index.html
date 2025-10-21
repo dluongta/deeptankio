@@ -256,75 +256,42 @@
     let activeR = false;
     const joystickRight = document.getElementById('joystickRight');
     const containerRight = document.getElementById('joystickContainerRight');
+
     let rightTouchId = null;
 
-container.addEventListener('touchstart', e => {
-  for (const touch of e.changedTouches) {
-    if (leftTouchId === null) {
-      leftTouchId = touch.identifier;
-      active = true;
-      const rect = container.getBoundingClientRect();
-      origin.x = rect.left + rect.width / 2;
-      origin.y = rect.top + rect.height / 2;
-      moveJoystick(touch.clientX, touch.clientY);
-    }
-  }
-}, { passive: false });
+    containerRight.addEventListener('touchstart', e => {
+      for (const touch of e.changedTouches) {
+        if (rightTouchId === null) {
+          rightTouchId = touch.identifier;
+          activeR = true;
+          const rect = containerRight.getBoundingClientRect();
+          originR.x = rect.left + rect.width / 2;
+          originR.y = rect.top + rect.height / 2;
+          moveJoystickRight(touch.clientX, touch.clientY);
+        }
+      }
+    }, { passive: false });
 
-container.addEventListener('touchmove', e => {
-  for (const touch of e.changedTouches) {
-    if (touch.identifier === leftTouchId) {
-      moveJoystick(touch.clientX, touch.clientY);
-      e.preventDefault();
-    }
-  }
-}, { passive: false });
+    containerRight.addEventListener('touchmove', e => {
+      for (const touch of e.changedTouches) {
+        if (touch.identifier === rightTouchId) {
+          moveJoystickRight(touch.clientX, touch.clientY);
+          e.preventDefault();
+        }
+      }
+    }, { passive: false });
 
-container.addEventListener('touchend', e => {
-  for (const touch of e.changedTouches) {
-    if (touch.identifier === leftTouchId) {
-      active = false;
-      leftTouchId = null;
-      joystick.style.transform = `translate(0px, 0px)`;
-      inputs.up = inputs.down = inputs.left = inputs.right = false;
-      sendInputs();
-    }
-  }
-}, { passive: false });
-
-containerRight.addEventListener('touchstart', e => {
-  for (const touch of e.changedTouches) {
-    if (rightTouchId === null) {
-      rightTouchId = touch.identifier;
-      activeR = true;
-      const rect = containerRight.getBoundingClientRect();
-      originR.x = rect.left + rect.width / 2;
-      originR.y = rect.top + rect.height / 2;
-      moveJoystickRight(touch.clientX, touch.clientY);
-    }
-  }
-}, { passive: false });
-
-containerRight.addEventListener('touchmove', e => {
-  for (const touch of e.changedTouches) {
-    if (touch.identifier === rightTouchId) {
-      moveJoystickRight(touch.clientX, touch.clientY);
-      e.preventDefault();
-    }
-  }
-}, { passive: false });
-
-containerRight.addEventListener('touchend', e => {
-  for (const touch of e.changedTouches) {
-    if (touch.identifier === rightTouchId) {
-      activeR = false;
-      rightTouchId = null;
-      joystickRight.style.transform = `translate(0px, 0px)`;
-      inputs.firing = false;
-      sendInputs();
-    }
-  }
-}, { passive: false });
+    containerRight.addEventListener('touchend', e => {
+      for (const touch of e.changedTouches) {
+        if (touch.identifier === rightTouchId) {
+          activeR = false;
+          rightTouchId = null;
+          joystickRight.style.transform = `translate(0px, 0px)`;
+          inputs.firing = false;
+          sendInputs();
+        }
+      }
+    }, { passive: false });
 
 
     function moveJoystickRight(x, y) {
@@ -455,6 +422,40 @@ containerRight.addEventListener('touchend', e => {
 
     let leftTouchId = null;
 
+
+    container.addEventListener('touchstart', e => {
+      for (const touch of e.changedTouches) {
+        if (leftTouchId === null) {
+          leftTouchId = touch.identifier;
+          active = true;
+          const rect = container.getBoundingClientRect();
+          origin.x = rect.left + rect.width / 2;
+          origin.y = rect.top + rect.height / 2;
+          moveJoystick(touch.clientX, touch.clientY);
+        }
+      }
+    }, { passive: false });
+
+    container.addEventListener('touchmove', e => {
+      for (const touch of e.changedTouches) {
+        if (touch.identifier === leftTouchId) {
+          moveJoystick(touch.clientX, touch.clientY);
+          e.preventDefault();
+        }
+      }
+    }, { passive: false });
+
+    container.addEventListener('touchend', e => {
+      for (const touch of e.changedTouches) {
+        if (touch.identifier === leftTouchId) {
+          active = false;
+          leftTouchId = null;
+          joystick.style.transform = `translate(0px, 0px)`;
+          inputs.up = inputs.down = inputs.left = inputs.right = false;
+          sendInputs();
+        }
+      }
+    }, { passive: false });
     function moveJoystick(x, y) {
       const dx = x - origin.x;
       const dy = y - origin.y;
@@ -649,23 +650,15 @@ containerRight.addEventListener('touchend', e => {
       e.preventDefault();
     }, { passive: false });
 
-    function moveJoystickRight(x, y) {
-      const dx = x - originR.x;
-      const dy = y - originR.y;
-      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 40);
-      const angle = Math.atan2(dy, dx);
-      joystickPosR.x = Math.cos(angle) * dist;
-      joystickPosR.y = Math.sin(angle) * dist;
-      joystickRight.style.transform = `translate(${joystickPosR.x}px, ${joystickPosR.y}px)`;
-
-      const player = state.players.find(p => p.id === clientId);
-      if (player) {
-        inputs.aimX = player.x + Math.cos(angle) * 100;
-        inputs.aimY = player.y + Math.sin(angle) * 100;
-        inputs.firing = true;
-        sendInputs();
-      }
-    }
+    container.addEventListener('touchstart', e => {
+      e.preventDefault();
+      active = true;
+      const touch = e.touches[0];
+      const rect = container.getBoundingClientRect();
+      origin.x = rect.left + rect.width / 2;
+      origin.y = rect.top + rect.height / 2;
+      moveJoystick(touch.clientX, touch.clientY);
+    }, { passive: false });
 
   </script>
 </body>
