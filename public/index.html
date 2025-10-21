@@ -288,6 +288,13 @@
       joystickPosR.y = Math.sin(angle) * dist;
       joystickRight.style.transform = `translate(${joystickPosR.x}px, ${joystickPosR.y}px)`;
 
+      const player = state.players.find(p => p.id === clientId);
+      if (player) {
+        inputs.aimX = player.x + Math.cos(angle) * 100;
+        inputs.aimY = player.y + Math.sin(angle) * 100;
+        inputs.firing = true;
+        sendInputs();
+      }
     }
     canvas.addEventListener('touchstart', e => {
       if (e.touches.length === 1) {
@@ -440,13 +447,6 @@
       inputs.down = dirY > threshold;
       inputs.left = dirX < -threshold;
       inputs.right = dirX > threshold;
-
-      const player = state.players.find(p => p.id === clientId);
-      if (player) {
-        inputs.aimX = player.x + dirX * 100;
-        inputs.aimY = player.y + dirY * 100;
-        inputs.firing = true;
-      }
 
       sendInputs();
     }
