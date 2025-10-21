@@ -162,6 +162,28 @@
       touch-action: none;
       z-index: 1000;
     }
+
+    #joystickContainerRight {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      touch-action: none;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #joystickRight {
+      width: 80px;
+      height: 80px;
+      background: #f06292;
+      border-radius: 50%;
+    }
   </style>
 </head>
 
@@ -195,6 +217,10 @@
   <div id="joystickContainer">
     <div id="joystick"></div>
   </div>
+  <div id="joystickContainerRight">
+    <div id="joystickRight"></div>
+  </div>
+
 
   <button id="autoFireBtn" onclick="toggleAutoFire()">Auto Fire: OFF</button>
 
@@ -225,6 +251,75 @@
     let origin = { x: 0, y: 0 };
     let joystickPos = { x: 0, y: 0 };
     let active = false;
+    let originR = { x: 0, y: 0 };
+    let joystickPosR = { x: 0, y: 0 };
+    let activeR = false;
+    const joystickRight = document.getElementById('joystickRight');
+    const containerRight = document.getElementById('joystickContainerRight');
+    containerRight.addEventListener('touchstart', e => {
+      e.preventDefault();
+      activeR = true;
+      const touch = e.touches[0];
+      const rect = containerRight.getBoundingClientRect();
+      originR.x = rect.left + rect.width / 2;
+      originR.y = rect.top + rect.height / 2;
+      moveJoystickRight(touch.clientX, touch.clientY);
+    }, { passive: false });
+
+    containerRight.addEventListener('touchmove', e => {
+      if (!activeR) return;
+      const touch = e.touches[0];
+      moveJoystickRight(touch.clientX, touch.clientY);
+      e.preventDefault();
+    }, { passive: false });
+
+    containerRight.addEventListener('touchend', () => {
+      activeR = false;
+      joystickRight.style.transform = `translate(0px, 0px)`;
+      inputs.firing = false;
+      sendInputs();
+    });
+    function moveJoystickRight(x, y) {
+      const dx = x - originR.x;
+      const dy = y - originR.y;
+      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 40);
+      const angle = Math.atan2(dy, dx);
+      joystickPosR.x = Math.cos(angle) * dist;
+      joystickPosR.y = Math.sin(angle) * dist;
+      joystickRight.style.transform = `translate(${joystickPosR.x}px, ${joystickPosR.y}px)`;
+
+      const player = state.players.find(p => p.id === clientId);
+      if (player) {
+        inputs.aimX = player.x + Math.cos(angle) * 100;
+        inputs.aimY = player.y + Math.sin(angle) * 100;
+        inputs.firing = true;
+        sendInputs();
+      }
+    }
+    canvas.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX;
+        const y = touch.clientY;
+
+        // Nếu chạm ở nửa phải màn hình thì điều khiển hướng bắn
+        if (x > window.innerWidth / 2) {
+          const me = state.players.find(p => p.id === clientId);
+          if (me) {
+            inputs.aimX = me.x + (x - window.innerWidth / 2);
+            inputs.aimY = me.y + (y - window.innerHeight / 2);
+            inputs.firing = true;
+            sendInputs();
+          }
+        }
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', () => {
+      inputs.firing = false;
+      sendInputs();
+    });
 
     function toggleAutoFire() {
       inputs.autoFire = !inputs.autoFire;
@@ -568,7 +663,7 @@
       if (player) {
         inputs.aimX = player.x + Math.cos(angle) * 100;
         inputs.aimY = player.y + Math.sin(angle) * 100;
-        inputs.firing = true; 
+        inputs.firing = true;
         sendInputs();
       }
     }
