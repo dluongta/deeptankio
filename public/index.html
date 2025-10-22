@@ -208,7 +208,7 @@
   <div id="help">
     <b>Hướng dẫn:</b><br>
     - Di chuyển: WASD hoặc ↑↓←→ hoặc joystick trái<br>
-    - Joystick phải (mobile): xoay nòng súng + bắn<br>
+    - Xoay hoặc click chuột hoặc sử dụng joystick phải (mobile): xoay nòng súng + bắn<br>
     - Nhấn <b>F</b>: Bật/Tắt auto-fire<br>
     - Lên cấp: chọn nâng cấp<br>
   </div>
@@ -322,7 +322,6 @@
         const x = touch.clientX;
         const y = touch.clientY;
 
-        // Nếu chạm ở nửa phải màn hình thì điều khiển hướng bắn
         if (x > window.innerWidth / 2) {
           const me = state.players.find(p => p.id === clientId);
           if (me) {
