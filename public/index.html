@@ -557,15 +557,8 @@
         ctx.fillStyle = '#444';
         if (o.type === 'rect') {
           ctx.fillRect(sx, sy, o.w, o.h);
-        } else if (o.type === 'tri') {
-          const s = o.size;
-          ctx.beginPath();
-          ctx.moveTo(sx, sy - s / 2);
-          ctx.lineTo(sx - s / 2, sy + s / 2);
-          ctx.lineTo(sx + s / 2, sy + s / 2);
-          ctx.closePath();
-          ctx.fill();
-        } else if (o.type === 'hex') {
+        } 
+        else if (o.type === 'hex') {
           const s = o.size / 2;
           ctx.beginPath();
           for (let i = 0; i < 6; i++) {
