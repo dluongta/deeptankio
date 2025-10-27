@@ -316,28 +316,75 @@
       }
     }
     canvas.addEventListener('touchstart', e => {
-      if (e.touches.length === 1) {
-        const touch = e.touches[0];
-        const rect = canvas.getBoundingClientRect();
+      const me = state.players.find(p => p.id === clientId);
+      if (!me) return;
+
+      for (const touch of e.touches) {
         const x = touch.clientX;
         const y = touch.clientY;
 
-        if (x > window.innerWidth / 2) {
-          const me = state.players.find(p => p.id === clientId);
-          if (me) {
-            inputs.aimX = me.x + (x - window.innerWidth / 2);
-            inputs.aimY = me.y + (y - window.innerHeight / 2);
-            inputs.firing = true;
-            sendInputs();
-          }
-        }
+        const leftRect = container.getBoundingClientRect();
+        const rightRect = containerRight.getBoundingClientRect();
+        const inLeftJoy = x >= leftRect.left && x <= leftRect.right && y >= leftRect.top && y <= leftRect.bottom;
+        const inRightJoy = x >= rightRect.left && x <= rightRect.right && y >= rightRect.top && y <= rightRect.bottom;
+        if (inLeftJoy || inRightJoy) continue;
+
+        const rect = canvas.getBoundingClientRect();
+        const relX = x - rect.left;
+        const relY = y - rect.top;
+        inputs.aimX = viewport.x + relX;
+        inputs.aimY = viewport.y + relY;
+        inputs.firing = true;
+        sendInputs();
       }
     }, { passive: false });
 
-    canvas.addEventListener('touchend', () => {
-      inputs.firing = false;
+
+    canvas.addEventListener('touchmove', e => {
+      const me = state.players.find(p => p.id === clientId);
+      if (!me) return;
+
+      for (const touch of e.touches) {
+        const x = touch.clientX;
+        const y = touch.clientY;
+
+        const leftRect = container.getBoundingClientRect();
+        const rightRect = containerRight.getBoundingClientRect();
+        const inLeftJoy = x >= leftRect.left && x <= leftRect.right && y >= leftRect.top && y <= leftRect.bottom;
+        const inRightJoy = x >= rightRect.left && x <= rightRect.right && y >= rightRect.top && y <= rightRect.bottom;
+        if (inLeftJoy || inRightJoy) continue;
+
+        const rect = canvas.getBoundingClientRect();
+        const relX = x - rect.left;
+        const relY = y - rect.top;
+        inputs.aimX = viewport.x + relX;
+        inputs.aimY = viewport.y + relY;
+        inputs.firing = true;
+        sendInputs();
+      }
+      e.preventDefault();
+    }, { passive: false });
+
+
+    canvas.addEventListener('touchend', e => {
+      let stillOutside = false;
+      for (const touch of e.touches) {
+        const x = touch.clientX;
+        const y = touch.clientY;
+
+        const leftRect = container.getBoundingClientRect();
+        const rightRect = containerRight.getBoundingClientRect();
+        const inLeftJoy = x >= leftRect.left && x <= leftRect.right && y >= leftRect.top && y <= leftRect.bottom;
+        const inRightJoy = x >= rightRect.left && x <= rightRect.right && y >= rightRect.top && y <= rightRect.bottom;
+        if (!inLeftJoy && !inRightJoy) {
+          stillOutside = true;
+          break;
+        }
+      }
+      inputs.firing = stillOutside;
       sendInputs();
-    });
+    }, { passive: false });
+
 
     function toggleAutoFire() {
       inputs.autoFire = !inputs.autoFire;
