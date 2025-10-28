@@ -117,15 +117,6 @@ function createBullet(owner, x, y, angle, speed, life, dmg) {
 
 function pointInObstacle(px, py, o) {
   if (o.type === "rect") return px > o.x && px < o.x + o.w && py > o.y && py < o.y + o.h;
-  if (o.type === "tri") {
-    const s = o.size;
-    const x1 = o.x, y1 = o.y - s / 2, x2 = o.x - s / 2, y2 = o.y + s / 2, x3 = o.x + s / 2, y3 = o.y + s / 2;
-    const d = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
-    const a = ((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) / d;
-    const b = ((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) / d;
-    const c = 1 - a - b;
-    return a >= 0 && b >= 0 && c >= 0;
-  }
   if (o.type === "hex") {
     const s = o.size / 2, dx = Math.abs(px - o.x), dy = Math.abs(py - o.y);
     return dx <= s && dy <= s * 0.866;
