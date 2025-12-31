@@ -259,7 +259,7 @@
   <canvas id="game"></canvas>
 
   <div id="hud">
-    ID: <span id="pid">-</span> | Level: <span id="lvl">-</span> | XP: <span id="xp">0</span>/<span id="xpTo">0</span> |
+    Name: <span id="pid">-</span> | Level: <span id="lvl">-</span> | XP: <span id="xp">0</span>/<span id="xpTo">0</span> |
     HP: <span id="hp">0</span> | Score: <span id="score">0</span>
   </div>
 
@@ -470,7 +470,7 @@ socket.onopen = () => {
         const msg = JSON.parse(e.data);
         if (msg.type === 'welcome') {
           clientId = msg.id;
-          pidEl.textContent = clientId.slice(0, 8);
+          pidEl.textContent = playerName;
           if (msg.worldSize) worldSize = msg.worldSize;
         } else if (msg.type === 'state') {
           state = msg;
@@ -602,7 +602,8 @@ li.textContent = `${e.name} — Lv${e.level} — ${e.score}`;
       if (me) {
         viewport.x = me.x - viewport.w / 2;
         viewport.y = me.y - viewport.h / 2;
-        lvlEl.textContent = me.level;
+        pidEl.textContent = me.name;
+        lvlEl.textContent = me.level; 
         xpEl.textContent = Math.round(me.xp);
         xpToEl.textContent = Math.round(me.xpToLevel);
         hpEl.textContent = Math.round(me.hp);
