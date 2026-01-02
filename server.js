@@ -17,7 +17,7 @@ const WORLD_W = 3000, WORLD_H = 2000;
 const TICK_RATE = 30, BROADCAST_RATE = 20;
 
 const world = { players: {}, bullets: [], obstacles: [] };
-const respawnTimers = new Map(); 
+const respawnTimers = new Map();
 
 function spawnObstacles(count = 80) {
   world.obstacles = [];
@@ -42,7 +42,7 @@ spawnObstacles();
 function respawnObstacle(id) {
   const r = Math.random();
   const newObs = {
-    id: id, 
+    id: id,
     x: Math.random() * WORLD_W,
     y: Math.random() * WORLD_H
   };
@@ -65,7 +65,7 @@ function respawnObstacle(id) {
 }
 
 
-function createPlayer(id,name) {
+function createPlayer(id, name) {
   return {
     id,
     name,
@@ -90,18 +90,33 @@ function createPlayer(id,name) {
 }
 
 function resetPlayer(p) {
+  // p.hp = p.maxHp = 100;
+  // p.xp = 0;
+  // p.level = 1;
+  // p.score = 0;
+  // p.damage = 20;
+  // p.fireCooldown = 0.3;
+  // p.speed = 220;
+  // p.regen = 1;
+  // p.bulletLife = 1.8;
+  // p.bulletSpeed = 850;
+  // p.x = Math.random() * WORLD_W;
+  // p.y = Math.random() * WORLD_H;
+  // giữ lại 1/2 xp & score
+  p.xp = Math.floor(p.xp * 0.5);
+  p.score = Math.floor(p.score * 0.5);
+
   p.hp = p.maxHp = 100;
-  p.xp = 0;
-  p.level = 1;
-  p.score = 0;
+  p.x = Math.random() * WORLD_W;
+  p.y = Math.random() * WORLD_H;
+
+  p.level = Math.max(1, p.level - 1);
   p.damage = 20;
   p.fireCooldown = 0.3;
   p.speed = 220;
   p.regen = 1;
   p.bulletLife = 1.8;
   p.bulletSpeed = 850;
-  p.x = Math.random() * WORLD_W;
-  p.y = Math.random() * WORLD_H;
 }
 
 function createBullet(owner, x, y, angle, speed, life, dmg) {
@@ -111,7 +126,7 @@ function createBullet(owner, x, y, angle, speed, life, dmg) {
     x, y,
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
-size: owner.bulletSize || 5,
+    size: owner.bulletSize || 5,
     life,
     damage: dmg
   };
@@ -292,40 +307,40 @@ function update() {
       //   p.angle, p.bulletSpeed, p.bulletLife, p.damage);
       // world.bullets.push(b);
       const offset = p.tier >= 3 ? 8 : 0;
-const baseX = p.x + Math.cos(p.angle) * (p.size + 12);
-const baseY = p.y + Math.sin(p.angle) * (p.size + 12);
+      const baseX = p.x + Math.cos(p.angle) * (p.size + 12);
+      const baseY = p.y + Math.sin(p.angle) * (p.size + 12);
 
-if (p.tier >= 3) {
-  // Nòng trái
-  world.bullets.push(createBullet(
-    p,
-    baseX + Math.cos(p.angle + Math.PI/2) * offset,
-    baseY + Math.sin(p.angle + Math.PI/2) * offset,
-    p.angle,
-    p.bulletSpeed,
-    p.bulletLife,
-    p.damage
-  ));
+      if (p.tier >= 3) {
+        // Nòng trái
+        world.bullets.push(createBullet(
+          p,
+          baseX + Math.cos(p.angle + Math.PI / 2) * offset,
+          baseY + Math.sin(p.angle + Math.PI / 2) * offset,
+          p.angle,
+          p.bulletSpeed,
+          p.bulletLife,
+          p.damage
+        ));
 
-  // Nòng phải
-  world.bullets.push(createBullet(
-    p,
-    baseX + Math.cos(p.angle - Math.PI/2) * offset,
-    baseY + Math.sin(p.angle - Math.PI/2) * offset,
-    p.angle,
-    p.bulletSpeed,
-    p.bulletLife,
-    p.damage
-  ));
-} else {
-  world.bullets.push(createBullet(
-    p, baseX, baseY,
-    p.angle,
-    p.bulletSpeed,
-    p.bulletLife,
-    p.damage
-  ));
-}
+        // Nòng phải
+        world.bullets.push(createBullet(
+          p,
+          baseX + Math.cos(p.angle - Math.PI / 2) * offset,
+          baseY + Math.sin(p.angle - Math.PI / 2) * offset,
+          p.angle,
+          p.bulletSpeed,
+          p.bulletLife,
+          p.damage
+        ));
+      } else {
+        world.bullets.push(createBullet(
+          p, baseX, baseY,
+          p.angle,
+          p.bulletSpeed,
+          p.bulletLife,
+          p.damage
+        ));
+      }
 
     }
 
@@ -350,20 +365,36 @@ if (p.tier >= 3) {
           o.hp = 0;
           const owner = world.players[b.ownerId];
           if (owner) {
-            owner.score += 10;
-            owner.xp += 5;
+            // owner.score += 10;
+            // owner.xp += 5;
+            // ===== thưởng theo loại obstacle =====
+            let scoreGain = 0;
+            let xpGain = 0;
+
+            if (o.type === "rect") {
+              scoreGain = 10;
+              xpGain = 5;
+            }
+            else if (o.type === "hex") {
+              scoreGain = 30; 
+              xpGain = 12;
+            }
+
+            owner.score += scoreGain;
+            owner.xp += xpGain;
+
             if (owner.xp >= owner.xpToLevel) {
               owner.level++;
               if (owner.level >= 10) {
-  owner.tier = 3;
-  owner.damage = 45;
-  owner.bulletSize = 9;
-}
-else if (owner.level >= 5) {
-  owner.tier = 2;
-  owner.damage = 30;
-  owner.bulletSize = 12;
-}
+                owner.tier = 3;
+                owner.damage = 45;
+                owner.bulletSize = 10;
+              }
+              else if (owner.level >= 5) {
+                owner.tier = 2;
+                owner.damage = 30;
+                owner.bulletSize = 12;
+              }
 
               owner.xp -= owner.xpToLevel;
               owner.xpToLevel = Math.round(owner.xpToLevel * 1.3);
@@ -373,7 +404,7 @@ else if (owner.level >= 5) {
               });
             }
           }
-          
+
           respawnTimers.set(o.id, Date.now() / 1000);
 
         }
@@ -390,8 +421,12 @@ else if (owner.level >= 5) {
           p.hp -= b.damage;
           const owner = world.players[b.ownerId];
           if (p.hp <= 0 && owner) {
-            owner.score += 20;
-            owner.xp += 10;
+            const scoreGain = Math.max(5, Math.floor(p.score * 0.5));
+            const xpGain = Math.max(60, Math.floor(p.level * 10 * 0.5));
+            owner.score += scoreGain;
+            owner.xp += xpGain;
+            resetPlayer(p);
+
           }
           hit = true;
           break;
@@ -418,8 +453,8 @@ setInterval(() => {
     players: Object.values(world.players),
     bullets: world.bullets,
     obstacles: world.obstacles,
-    leaderboard: sorted.map(p => ({  name: p.name, score: p.score, level: p.level }))
-  }); 
+    leaderboard: sorted.map(p => ({ name: p.name, score: p.score, level: p.level }))
+  });
   wss.clients.forEach(c => { if (c.readyState === 1) c.send(payload); });
 }, 1000 / BROADCAST_RATE);
 
