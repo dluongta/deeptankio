@@ -671,28 +671,58 @@ li.textContent = `${e.name} — Lv${e.level} — ${e.score}`;
         ctx.rotate(p.angle || 0);
         ctx.fillStyle = (p.id === clientId) ? '#4dd0e1' : '#fff';
         // ctx.fillRect(-p.size, -p.size, p.size * 2, p.size * 2);
-        if (p.tier === 1) {
-  ctx.fillRect(-20, -20, 40, 40); 
-}
+//         if (p.tier === 1) {
+//   ctx.fillRect(-20, -20, 40, 40); 
+// }
 
-if (p.tier === 2) {
+// if (p.tier === 2) {
+//   ctx.beginPath();
+//   ctx.arc(0, 0, 22, 0, Math.PI*2); 
+//   ctx.fill();
+// }
+
+// if (p.tier === 3) {
+//   const s = 22; // bán kính của lục giác
+//   ctx.beginPath();
+//   for (let i = 0; i < 6; i++) {
+//     const angle = Math.PI / 3 * i; // mỗi góc trong lục giác 60 độ
+//     const x = Math.cos(angle) * s;
+//     const y = Math.sin(angle) * s;
+//     if (i === 0) {
+//       ctx.moveTo(x, y);
+//     } else {
+//       ctx.lineTo(x, y);
+//     }
+//   }
+//   ctx.closePath();
+//   ctx.fill();
+// }
+// ===== VẼ THÂN TANK =====
+if (p.tier === 1) {
+  // TAM GIÁC
   ctx.beginPath();
-  ctx.arc(0, 0, 22, 0, Math.PI*2); 
+  ctx.moveTo(0, -22);    // đỉnh trên
+  ctx.lineTo(20, 18);    // góc phải
+  ctx.lineTo(-20, 18);   // góc trái
+  ctx.closePath();
   ctx.fill();
 }
 
-if (p.tier === 3) {
-  const s = 22; // bán kính của lục giác
+else if (p.tier === 2) {
+  // HÌNH VUÔNG / CHỮ NHẬT
+  ctx.fillRect(-22, -22, 44, 44);
+}
+
+else if (p.tier === 3) {
+  // LỤC GIÁC (giữ nguyên)
+  const s = 22;
   ctx.beginPath();
   for (let i = 0; i < 6; i++) {
-    const angle = Math.PI / 3 * i; // mỗi góc trong lục giác 60 độ
+    const angle = Math.PI / 3 * i;
     const x = Math.cos(angle) * s;
     const y = Math.sin(angle) * s;
-    if (i === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-    }
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
   }
   ctx.closePath();
   ctx.fill();

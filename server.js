@@ -117,6 +117,13 @@ function resetPlayer(p) {
   p.regen = 1;
   p.bulletLife = 1.8;
   p.bulletSpeed = 850;
+  applyTier(p);
+  p.xpToLevel = calcXpToLevel(p.level);
+  p.xp = Math.min(p.xp, p.xpToLevel - 1);
+
+}
+function calcXpToLevel(level) {
+  return Math.round(10 * Math.pow(1.3, level - 1));
 }
 
 function createBullet(owner, x, y, angle, speed, life, dmg) {
@@ -237,6 +244,55 @@ wss.on("connection", (ws) => {
 });
 
 let last = Date.now() / 1000;
+function addXPAndCheckLevel(player, xpGain) {
+  player.xp += xpGain;
+
+  while (player.xp >= player.xpToLevel) {
+    player.xp -= player.xpToLevel;
+    player.level++;
+    applyTier(player);
+    player.xpToLevel = calcXpToLevel(player.level);
+
+
+    // ===== tier theo level =====
+    if (player.level >= 10) {
+      player.tier = 3;
+      player.damage = 45;
+      player.bulletSize = 10;
+    } else if (player.level >= 5) {
+      player.tier = 2;
+      player.damage = 30;
+      player.bulletSize = 12;
+    }
+
+    // player.xpToLevel = Math.round(player.xpToLevel * 1.3);
+
+    wss.clients.forEach(ws => {
+      if (ws.id === player.id && ws.readyState === 1) {
+        ws.send(JSON.stringify({
+          type: "levelup",
+          level: player.level
+        }));
+      }
+    });
+  }
+}
+function applyTier(player) {
+  if (player.level >= 10) {
+    player.tier = 3;
+    player.damage = 45;
+    player.bulletSize = 8; // nhỏ hơn tier 2
+  } else if (player.level >= 5) {
+    player.tier = 2;
+    player.damage = 30;
+    player.bulletSize = 12;
+  } else {
+    player.tier = 1;
+    player.damage = 20;
+    player.bulletSize = 5;
+  }
+}
+
 function update() {
   const now = Date.now() / 1000;
   const dt = Math.min(0.1, now - last);
@@ -376,12 +432,13 @@ function update() {
               xpGain = 5;
             }
             else if (o.type === "hex") {
-              scoreGain = 30; 
+              scoreGain = 30;
               xpGain = 12;
             }
 
             owner.score += scoreGain;
-            owner.xp += xpGain;
+            addXPAndCheckLevel(owner, xpGain);
+
 
             if (owner.xp >= owner.xpToLevel) {
               owner.level++;
@@ -424,8 +481,9 @@ function update() {
             const scoreGain = Math.max(5, Math.floor(p.score * 0.5));
             const xpGain = Math.max(60, Math.floor(p.level * 10 * 0.5));
             owner.score += scoreGain;
-            owner.xp += xpGain;
+            addXPAndCheckLevel(owner, xpGain);
             resetPlayer(p);
+
 
           }
           hit = true;
