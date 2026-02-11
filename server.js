@@ -67,6 +67,12 @@ function respawnObstacle(id) {
 
 function createPlayer(id, name) {
   return {
+    upgradePoints: 0,
+    upgrades: {
+      hpMax: 0, regen: 0, speed: 0, fireRate: 0,
+      damage: 0, bulletSpeed: 0, bulletLife: 0,
+      bodyDamage: 0, bulletPen: 0
+    },
     id,
     name,
     tier: 1,
@@ -228,13 +234,26 @@ wss.on("connection", (ws) => {
 
     if (msg.type === "upgrade") {
       const c = msg.choice;
-      if (c === "hpMax") pl.maxHp += 20, pl.hp = pl.maxHp;
-      if (c === "regen") pl.regen += 0.5;
-      if (c === "speed") pl.speed += 20;
-      if (c === "fireRate") pl.fireCooldown *= 0.9;
-      if (c === "damage") pl.damage += 5;
-      if (c === "bulletSpeed") pl.bulletSpeed += 100;
-      if (c === "bulletLife") pl.bulletLife += 0.2;
+      // Kiểm tra xem thuộc tính có tồn tại không để tránh lỗi crash server
+      if (pl.upgrades[c] === undefined) return;
+
+      const currentLvl = pl.upgrades[c];
+
+      // Kiểm tra: Còn điểm và chưa quá 8 cấp
+      if (pl.upgradePoints > 0 && currentLvl < 8) {
+        pl.upgradePoints--;
+        pl.upgrades[c] = currentLvl + 1;
+
+        // Logic tăng chỉ số
+        if (c === "hpMax") { pl.maxHp += 20; pl.hp += 20; }
+        else if (c === "regen") pl.regen += 0.5;
+        else if (c === "speed") pl.speed += 20;
+        else if (c === "fireRate") pl.fireCooldown *= 0.9;
+        else if (c === "damage") pl.damage += 5;
+        else if (c === "bulletSpeed") pl.bulletSpeed += 100;
+        else if (c === "bulletLife" || c === "bulletPen") pl.bulletLife += 0.2;
+        else if (c === "bodyDamage") pl.bodyDamage += 5; // Xử lý cho bodyDamage
+      }
     }
   });
 
@@ -250,6 +269,7 @@ function addXPAndCheckLevel(player, xpGain) {
   while (player.xp >= player.xpToLevel) {
     player.xp -= player.xpToLevel;
     player.level++;
+    player.upgradePoints++;
     applyTier(player);
     player.xpToLevel = calcXpToLevel(player.level);
 
@@ -505,10 +525,16 @@ function update() {
 setInterval(update, 1000 / TICK_RATE);
 
 setInterval(() => {
-  const sorted = Object.values(world.players).sort((a, b) => b.score - a.score).slice(0, 5);
+  // Map dữ liệu để thêm thuộc tính "stats" cho Client dùng
+  const playersForClient = Object.values(world.players).map(p => ({
+    ...p,
+    stats: p.upgrades // QUAN TRỌNG: Client cần cái này để vẽ thanh cấp độ
+  }));
+
+  const sorted = playersForClient.sort((a, b) => b.score - a.score).slice(0, 5);
   const payload = JSON.stringify({
     type: "state",
-    players: Object.values(world.players),
+    players: playersForClient, // Gửi danh sách đã map
     bullets: world.bullets,
     obstacles: world.obstacles,
     leaderboard: sorted.map(p => ({ name: p.name, score: p.score, level: p.level }))

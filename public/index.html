@@ -244,6 +244,162 @@
       line-height: 1.5;
       max-width: calc(100vw - 20px);
     }
+
+    #upgradeUI {
+      position: fixed;
+      left: 320px;
+      top: 260px;
+      z-index: 100;
+      display: none;
+      background: transparent;
+      user-select: none;
+    }
+
+    #pointsAvail {
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      text-shadow: 2px 2px #000;
+      margin-bottom: 5px;
+      font-style: italic;
+      padding-left: 110px;
+      /* Căn lề theo các nút bấm */
+    }
+
+    .upgrade-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+      height: 24px;
+      transition: transform 0.1s;
+    }
+
+    /* Tìm và thay thế đoạn này */
+    .upgrade-row:hover {
+      /* transform: translateX(5px);  <-- Xóa dòng này vì gây rung */
+      background: rgba(255, 255, 255, 0.05);
+      /* Thêm nền nhẹ thay thế */
+      border-radius: 15px;
+    }
+
+    .upgrade-name {
+      width: 120px;
+      background: rgba(85, 85, 85, 0.9);
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 0 10px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      border-radius: 15px 0 0 15px;
+      text-transform: uppercase;
+      box-shadow: inset 0 -2px rgba(0, 0, 0, 0.2);
+    }
+
+    .upgrade-level-bar {
+      display: flex;
+      background: rgba(40, 40, 40, 0.9);
+      height: 100%;
+      padding: 3px 4px;
+      gap: 3px;
+      align-items: center;
+      min-width: 100px;
+    }
+
+    .level-unit {
+      width: 10px;
+      height: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 1px;
+    }
+
+    /* Đổ màu cho từng loại thuộc tính khi đã nâng cấp */
+    .level-unit.btn-regen.filled {
+      background: #ffbd91;
+    }
+
+    .level-unit.btn-hp.filled {
+      background: #ff8df6;
+    }
+
+    .level-unit.btn-body.filled {
+      background: #9287ff;
+    }
+
+    .level-unit.btn-bspeed.filled {
+      background: #829aff;
+    }
+
+    .level-unit.btn-pen.filled {
+      background: #fff181;
+    }
+
+    .level-unit.btn-dmg.filled {
+      background: #ff7d7d;
+    }
+
+    .level-unit.btn-reload.filled {
+      background: #85ff85;
+    }
+
+    .level-unit.btn-mspeed.filled {
+      background: #81ffff;
+    }
+
+    .upgrade-btn {
+      width: 35px;
+      height: 100%;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 18px;
+      color: rgba(0, 0, 0, 0.5);
+      /* Nút + màu đen mờ như ảnh */
+      border-radius: 0 15px 15px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 -3px rgba(0, 0, 0, 0.2);
+    }
+
+    .upgrade-btn:active {
+      box-shadow: none;
+      transform: translateY(1px);
+    }
+
+    /* Màu nền của các nút tương ứng */
+    .btn-regen {
+      background: #ffbd91;
+    }
+
+    .btn-hp {
+      background: #ff8df6;
+    }
+
+    .btn-body {
+      background: #9287ff;
+    }
+
+    .btn-bspeed {
+      background: #829aff;
+    }
+
+    .btn-pen {
+      background: #fff181;
+    }
+
+    .btn-dmg {
+      background: #ff7d7d;
+    }
+
+    .btn-reload {
+      background: #85ff85;
+    }
+
+    .btn-mspeed {
+      background: #81ffff;
+    }
   </style>
 </head>
 
@@ -303,6 +459,7 @@
     <div id="upgradeButtons"></div>
   </div>
 
+
   <div id="joystickContainer">
     <div id="joystick"></div>
   </div>
@@ -347,7 +504,16 @@
     const containerRight = document.getElementById('joystickContainerRight');
 
     let rightTouchId = null;
-
+    const STATS_CONFIG = [
+      { id: 'regen', label: 'Health Regen', color: 'btn-regen' },
+      { id: 'hpMax', label: 'Max Health', color: 'btn-hp' },
+      { id: 'bodyDamage', label: 'Body Damage', color: 'btn-body' },
+      { id: 'bulletSpeed', label: 'Bullet Speed', color: 'btn-bspeed' },
+      { id: 'bulletPen', label: 'Bullet Pen.', color: 'btn-pen' },
+      { id: 'damage', label: 'Bullet Damage', color: 'btn-dmg' },
+      { id: 'fireRate', label: 'Reload', color: 'btn-reload' },
+      { id: 'speed', label: 'Move Speed', color: 'btn-mspeed' }
+    ];
     containerRight.addEventListener('touchstart', e => {
       for (const touch of e.changedTouches) {
         if (rightTouchId === null) {
@@ -495,6 +661,22 @@
           if (msg.worldSize) worldSize = msg.worldSize;
         } else if (msg.type === 'state') {
           state = msg;
+
+          // TỰ ĐỘNG CẬP NHẬT UI NÂNG CẤP NẾU ĐANG MỞ
+          const me = state.players.find(p => p.id === clientId);
+          // Thay thế đoạn check state trong socket.onmessage:
+          if (me && me.upgradePoints > 0) {
+            // Chỉ render lại nếu số điểm hoặc thông số level thay đổi để tránh lag/mất click
+            const currentStateStr = JSON.stringify(me.stats) + me.upgradePoints;
+            if (upgradeUI.dataset.lastState !== currentStateStr) {
+              showUpgradeMenu();
+              upgradeUI.dataset.lastState = currentStateStr;
+            }
+            upgradeUI.style.display = 'block';
+          } else {
+            upgradeUI.style.display = 'none';
+            upgradeUI.dataset.lastState = "";
+          }
           lbEl.innerHTML = "";
           if (msg.leaderboard) {
             msg.leaderboard.forEach(e => {
@@ -504,7 +686,7 @@
             });
           }
         } else if (msg.type === 'levelup') {
-          showUpgradeMenu(msg.level);
+          showUpgradeMenu();
         }
       };
       socket.onclose = () => setTimeout(connect, 1200);
@@ -815,30 +997,149 @@
       { id: 'bulletLife', label: 'Range +', desc: 'Tăng tầm bắn' }
     ];
 
-    function showUpgradeMenu(level) {
-      const choices = [];
-      const pool = ALL_UPGRADES.slice();
-      for (let i = 0; i < 3; i++) {
-        const idx = Math.floor(Math.random() * pool.length);
-        choices.push(pool.splice(idx, 1)[0]);
+    // function showUpgradeMenu(level) {
+    //   const choices = [];
+    //   const pool = ALL_UPGRADES.slice();
+    //   for (let i = 0; i < 3; i++) {
+    //     const idx = Math.floor(Math.random() * pool.length);
+    //     choices.push(pool.splice(idx, 1)[0]);
+    //   }
+    //   currentUpgradeChoices = choices;
+    //   upgradeButtonsDiv.innerHTML = '';
+    //   choices.forEach((c, i) => {
+    //     const btn = document.createElement('button');
+    //     btn.textContent = `${i + 1}. ${c.label} — ${c.desc}`;
+    //     btn.onclick = () => chooseUpgrade(c.id);
+    //     upgradeButtonsDiv.appendChild(btn);
+    //   });
+    //   upgradeUI.style.display = 'block';
+    function showUpgradeMenu() {
+      const me = state.players.find(p => p.id === clientId);
+
+      if (!me || me.upgradePoints <= 0) {
+        upgradeUI.style.display = 'none';
+        return;
       }
-      currentUpgradeChoices = choices;
-      upgradeButtonsDiv.innerHTML = '';
-      choices.forEach((c, i) => {
-        const btn = document.createElement('button');
-        btn.textContent = `${i + 1}. ${c.label} — ${c.desc}`;
-        btn.onclick = () => chooseUpgrade(c.id);
-        upgradeButtonsDiv.appendChild(btn);
-      });
+
       upgradeUI.style.display = 'block';
+      upgradeButtonsDiv.innerHTML = '';
+
+      // Hiển thị số điểm còn lại
+      const pointsText = document.createElement('div');
+      pointsText.id = 'pointsAvail';
+      pointsText.textContent = `x${me.upgradePoints}`;
+      upgradeButtonsDiv.appendChild(pointsText);
+
+      STATS_CONFIG.forEach((stat) => {
+        const row = document.createElement('div');
+        row.className = 'upgrade-row';
+
+        const nameSpan = document.createElement('div');
+        nameSpan.className = 'upgrade-name';
+        nameSpan.textContent = stat.label;
+
+        const bar = document.createElement('div');
+        bar.className = 'upgrade-level-bar';
+
+        // Lấy level từ server (ví dụ: me.stats.regen)
+        const currentLevel = (me.stats && me.stats[stat.id] !== undefined) ? me.stats[stat.id] : 0;
+
+        for (let i = 0; i < 8; i++) {
+          const unit = document.createElement('div');
+          // Kiểm tra nếu i < cấp hiện tại thì thắp sáng ô đó
+          unit.className = 'level-unit' + (i < currentLevel ? ` filled ${stat.color}` : '');
+          bar.appendChild(unit);
+        }
+
+        const btn = document.createElement('button');
+        btn.className = `upgrade-btn ${stat.color}`;
+        btn.textContent = '+';
+        btn.onclick = (e) => {
+          e.preventDefault();
+          chooseUpgrade(stat.id);
+        };
+
+        row.appendChild(nameSpan);
+        row.appendChild(bar);
+        row.appendChild(btn);
+        upgradeButtonsDiv.appendChild(row);
+      });
+    }
+    function chooseUpgrade(choiceId) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        // Gửi yêu cầu nâng cấp lên server
+        socket.send(JSON.stringify({
+          type: 'upgrade',
+          choice: choiceId
+        }));
+
+        // Thêm một chút hiệu ứng phản hồi ngay lập tức để người dùng biết đã bấm
+        console.log("Đã gửi yêu cầu nâng cấp:", choiceId);
+      }
     }
 
-    function hideUpgradeMenu() { upgradeUI.style.display = 'none'; }
-    function chooseUpgrade(choiceId) {
-      if (socket && socket.readyState === WebSocket.OPEN)
-        socket.send(JSON.stringify({ type: 'upgrade', choice: choiceId }));
-      hideUpgradeMenu();
+    function hideUpgradeMenu() {
+      const upgradeUI = document.getElementById('upgradeUI'); // Đảm bảo lấy đúng ID
+      if (upgradeUI) {
+        upgradeUI.style.display = 'none';
+      }
     }
+
+    function showUpgradeMenu() {
+      const me = state.players.find(p => p.id === clientId);
+
+      if (!me || me.upgradePoints <= 0) {
+        upgradeUI.style.display = 'none';  // Nếu không còn điểm nâng cấp thì ẩn menu
+        return;
+      }
+
+      upgradeUI.style.display = 'block';  // Hiển thị menu nâng cấp
+      upgradeButtonsDiv.innerHTML = '';  // Làm mới các nút nâng cấp
+
+      // Hiển thị số điểm nâng cấp còn lại
+      const pointsText = document.createElement('div');
+      pointsText.id = 'pointsAvail';
+      pointsText.textContent = `x${me.upgradePoints}`;
+      upgradeButtonsDiv.appendChild(pointsText);
+
+      STATS_CONFIG.forEach((stat) => {
+        const row = document.createElement('div');
+        row.className = 'upgrade-row';
+
+        const nameSpan = document.createElement('div');
+        nameSpan.className = 'upgrade-name';
+        nameSpan.textContent = stat.label;
+
+        const bar = document.createElement('div');
+        bar.className = 'upgrade-level-bar';
+
+        const currentLevel = (me.stats && me.stats[stat.id] !== undefined) ? me.stats[stat.id] : 0;
+
+        for (let i = 0; i < 8; i++) {
+          const unit = document.createElement('div');
+          unit.className = 'level-unit' + (i < currentLevel ? ` filled ${stat.color}` : '');
+          bar.appendChild(unit);
+        }
+
+        const btn = document.createElement('button');
+        btn.className = `upgrade-btn ${stat.color}`;
+        btn.textContent = '+';
+        btn.onclick = (e) => {
+          e.preventDefault();
+          chooseUpgrade(stat.id);
+        };
+
+        row.appendChild(nameSpan);
+        row.appendChild(bar);
+        row.appendChild(btn);
+        upgradeButtonsDiv.appendChild(row);
+      });
+    }
+
+    function hideUpgradeMenu() {
+      upgradeUI.style.display = 'none';  // Ẩn menu khi nâng cấp xong
+    }
+
     window.addEventListener('touchmove', function (e) {
       e.preventDefault();
     }, { passive: false });
