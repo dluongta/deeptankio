@@ -71,7 +71,7 @@ function createPlayer(id, name) {
     upgrades: {
       hpMax: 0, regen: 0, speed: 0, fireRate: 0,
       damage: 0, bulletSpeed: 0, bulletLife: 0,
-      bodyDamage: 0, bulletPen: 0
+      bodyDamage: 0, bulletRange: 0
     },
     id,
     name,
@@ -132,7 +132,7 @@ function calcXpToLevel(level) {
   return Math.round(10 * Math.pow(1.3, level - 1));
 }
 
-function createBullet(owner, x, y, angle, speed, life, dmg) {
+function createBullet(owner, x, y, angle, speed, bulletLife, dmg) {
   return {
     id: uuidv4(),
     ownerId: owner.id,
@@ -140,7 +140,7 @@ function createBullet(owner, x, y, angle, speed, life, dmg) {
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
     size: owner.bulletSize || 5,
-    life,
+    bulletLife,
     damage: dmg
   };
 }
@@ -251,8 +251,8 @@ wss.on("connection", (ws) => {
         else if (c === "fireRate") pl.fireCooldown *= 0.9;
         else if (c === "damage") pl.damage += 5;
         else if (c === "bulletSpeed") pl.bulletSpeed += 100;
-        else if (c === "bulletLife" || c === "bulletPen") pl.bulletLife += 0.2;
-        else if (c === "bodyDamage") pl.bodyDamage += 5; // Xử lý cho bodyDamage
+        else if (c === "bulletLife" || c === "bulletRange") pl.bulletLife += 0.8;
+        // else if (c === "bodyDamage") pl.bodyDamage += 5;
       }
     }
   });
@@ -427,8 +427,8 @@ function update() {
     const b = world.bullets[i];
     b.x += b.vx * dt;
     b.y += b.vy * dt;
-    b.life -= dt;
-    if (b.life <= 0) { world.bullets.splice(i, 1); continue; }
+    b.bulletLife -= dt;
+    if (b.bulletLife <= 0) { world.bullets.splice(i, 1); continue; }
 
     let hit = false;
 
