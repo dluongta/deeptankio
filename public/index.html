@@ -400,6 +400,11 @@
     .btn-mspeed {
       background: #81ffff;
     }
+
+    /* #game {
+      image-rendering: pixelated;
+      -webkit-tap-highlight-color: transparent;
+    } */
   </style>
 </head>
 
@@ -666,13 +671,11 @@
           const me = state.players.find(p => p.id === clientId);
           // Thay thế đoạn check state trong socket.onmessage:
           if (me && me.upgradePoints > 0) {
-            // Chỉ render lại nếu số điểm hoặc thông số level thay đổi để tránh lag/mất click
-            const currentStateStr = JSON.stringify(me.stats) + me.upgradePoints;
-            if (upgradeUI.dataset.lastState !== currentStateStr) {
+            if (upgradeUI.dataset.lastPoints !== me.upgradePoints.toString()) {
               showUpgradeMenu();
-              upgradeUI.dataset.lastState = currentStateStr;
+              upgradeUI.dataset.lastPoints = me.upgradePoints;
+              upgradeUI.style.display = 'block';
             }
-            upgradeUI.style.display = 'block';
           } else {
             upgradeUI.style.display = 'none';
             upgradeUI.dataset.lastState = "";
@@ -1067,14 +1070,10 @@
     }
     function chooseUpgrade(choiceId) {
       if (socket && socket.readyState === WebSocket.OPEN) {
-        // Gửi yêu cầu nâng cấp lên server
         socket.send(JSON.stringify({
           type: 'upgrade',
           choice: choiceId
         }));
-
-        // Thêm một chút hiệu ứng phản hồi ngay lập tức để người dùng biết đã bấm
-        console.log("Đã gửi yêu cầu nâng cấp:", choiceId);
       }
     }
 
@@ -1137,7 +1136,7 @@
     }
 
     function hideUpgradeMenu() {
-      upgradeUI.style.display = 'none';  // Ẩn menu khi nâng cấp xong
+      upgradeUI.style.display = 'none';  
     }
 
     window.addEventListener('touchmove', function (e) {

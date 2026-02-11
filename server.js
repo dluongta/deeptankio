@@ -525,16 +525,15 @@ function update() {
 setInterval(update, 1000 / TICK_RATE);
 
 setInterval(() => {
-  // Map dữ liệu để thêm thuộc tính "stats" cho Client dùng
   const playersForClient = Object.values(world.players).map(p => ({
     ...p,
-    stats: p.upgrades // QUAN TRỌNG: Client cần cái này để vẽ thanh cấp độ
+    stats: p.upgrades 
   }));
 
   const sorted = playersForClient.sort((a, b) => b.score - a.score).slice(0, 5);
   const payload = JSON.stringify({
     type: "state",
-    players: playersForClient, // Gửi danh sách đã map
+    players: playersForClient, 
     bullets: world.bullets,
     obstacles: world.obstacles,
     leaderboard: sorted.map(p => ({ name: p.name, score: p.score, level: p.level }))
