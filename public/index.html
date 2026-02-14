@@ -1018,8 +1018,21 @@
     //   });
     //   upgradeUI.style.display = 'block';
     function showUpgradeMenu() {
+    if (upgradeUI.style.display === 'none' && upgradeUI.dataset.manuallyClosed === 'true') return;
     const me = state.players.find(p => p.id === clientId);
+    if (me && me.level >= 45) {
+        upgradeUI.style.display = 'none';
+        return;
+    }
     if (!me || me.upgradePoints <= 0) return;
+    
+    const totalUpgrades = Object.values(me.stats || {}).reduce((a, b) => a + b, 0);
+    const maxPossibleUpgrades = STATS_CONFIG.length * 8;
+
+    if (totalUpgrades >= maxPossibleUpgrades || me.upgradePoints <= 0) {
+        upgradeUI.style.display = 'none';
+        return;
+    }
 
     // Tạo một chuỗi định danh trạng thái hiện tại (điểm + tổng level các skill)
     const currentStatsState = me.upgradePoints + JSON.stringify(me.stats);
@@ -1067,6 +1080,7 @@
         row.appendChild(btn);
         upgradeButtonsDiv.appendChild(row);
     });
+    
 }
     function chooseUpgrade(choiceId) {
       if (socket && socket.readyState === WebSocket.OPEN) {
