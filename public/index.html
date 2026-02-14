@@ -401,6 +401,18 @@
       background: #81ffff;
     }
 
+    #closeUpgrade {
+      position: absolute;
+      top: 5px;
+      right: 8px;
+      background: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+
     /* #game {
       image-rendering: pixelated;
       -webkit-tap-highlight-color: transparent;
@@ -460,6 +472,7 @@
   </div>
 
   <div id="upgradeUI">
+    <button id="closeUpgrade">✖</button>
     <div class="hint">Bạn đã lên cấp! Chọn 1 nâng cấp:</div>
     <div id="upgradeButtons"></div>
   </div>
@@ -489,6 +502,8 @@
     const hpEl = document.getElementById('hp');
     const scoreEl = document.getElementById('score');
     const lbEl = document.getElementById('lb');
+    let lastUpgradePoints = 0;
+    let upgradeMenuClosed = false;
 
     const upgradeUI = document.getElementById('upgradeUI');
     const upgradeButtonsDiv = document.getElementById('upgradeButtons');
@@ -666,18 +681,32 @@
           if (msg.worldSize) worldSize = msg.worldSize;
         } else if (msg.type === 'state') {
           state = msg;
-    const me = state.players.find(p => p.id === clientId);
+          const me = state.players.find(p => p.id === clientId);
 
-    if (me) {
-        // Nếu có điểm nâng cấp -> Luôn đảm bảo menu được cập nhật và hiển thị
-        if (me.upgradePoints > 0) {
-            showUpgradeMenu(); // Hàm này sẽ tự render lại các thanh bar
-            upgradeUI.style.display = 'block';
-        } else {
-            upgradeUI.style.display = 'none';
-        }
-    }
-           else {
+          if (me) {
+            // nếu có điểm nâng cấp mới → cho phép mở lại menu
+            if (me.upgradePoints > lastUpgradePoints) {
+              upgradeClosed = false;
+            }
+
+            // hiển thị menu nếu còn điểm và chưa bị đóng thủ công
+            if (me.upgradePoints > 0 && !upgradeClosed) {
+              showUpgradeMenu();
+              upgradeUI.style.display = 'block';
+            }
+
+            // hết điểm → ẩn menu
+            if (me.upgradePoints <= 0) {
+              upgradeUI.style.display = 'none';
+            }
+
+            // lưu lại số điểm hiện tại
+            lastUpgradePoints = me.upgradePoints;
+
+
+
+          }
+          else {
             upgradeUI.style.display = 'none';
             upgradeUI.dataset.lastState = "";
           }
@@ -1018,37 +1047,48 @@
     //   });
     //   upgradeUI.style.display = 'block';
     function showUpgradeMenu() {
-    if (upgradeUI.style.display === 'none' && upgradeUI.dataset.manuallyClosed === 'true') return;
-    const me = state.players.find(p => p.id === clientId);
-    if (me && me.level >= 50) {
+      // if (upgradeUI.style.display === 'none' && upgradeUI.dataset.manuallyClosed === 'true') return;
+      const me = state.players.find(p => p.id === clientId);
+      if (!me) return;
+
+      // nếu nhận điểm nâng cấp mới → cho phép mở lại menu
+      if (upgradeUI.dataset.lastPoints != me.upgradePoints) {
+        upgradeUI.dataset.manuallyClosed = "false";
+        upgradeUI.dataset.lastPoints = me.upgradePoints;
+      }
+
+      // nếu người chơi vừa đóng và chưa có điểm mới → không mở
+      if (upgradeUI.dataset.manuallyClosed === "true") return;
+
+
+      if (!me || me.upgradePoints <= 0) {
+        upgradeUI.dataset.manuallyClosed = "false";
+        return;
+      }
+
+      const totalUpgrades = Object.values(me.stats || {}).reduce((a, b) => a + b, 0);
+      const maxPossibleUpgrades = STATS_CONFIG.length * 8;
+
+      if (totalUpgrades >= maxPossibleUpgrades || me.upgradePoints <= 0) {
         upgradeUI.style.display = 'none';
         return;
-    }
-    if (!me || me.upgradePoints <= 0) return;
-    
-    const totalUpgrades = Object.values(me.stats || {}).reduce((a, b) => a + b, 0);
-    const maxPossibleUpgrades = STATS_CONFIG.length * 8;
+      }
 
-    if (totalUpgrades >= maxPossibleUpgrades || me.upgradePoints <= 0) {
-        upgradeUI.style.display = 'none';
-        return;
-    }
+      // Tạo một chuỗi định danh trạng thái hiện tại (điểm + tổng level các skill)
+      const currentStatsState = me.upgradePoints + JSON.stringify(me.stats);
 
-    // Tạo một chuỗi định danh trạng thái hiện tại (điểm + tổng level các skill)
-    const currentStatsState = me.upgradePoints + JSON.stringify(me.stats);
-    
-    // Nếu trạng thái giống hệt lần render trước thì không làm gì cả (tránh lag/nháy)
-    if (upgradeUI.dataset.lastState === currentStatsState) return;
-    upgradeUI.dataset.lastState = currentStatsState;
+      // Nếu trạng thái giống hệt lần render trước thì không làm gì cả (tránh lag/nháy)
+      if (upgradeUI.dataset.lastState === currentStatsState) return;
+      upgradeUI.dataset.lastState = currentStatsState;
 
-    upgradeButtonsDiv.innerHTML = ''; 
+      upgradeButtonsDiv.innerHTML = '';
 
-    const pointsText = document.createElement('div');
-    pointsText.id = 'pointsAvail';
-    pointsText.textContent = `x${me.upgradePoints}`;
-    upgradeButtonsDiv.appendChild(pointsText);
+      const pointsText = document.createElement('div');
+      pointsText.id = 'pointsAvail';
+      pointsText.textContent = `x${me.upgradePoints}`;
+      upgradeButtonsDiv.appendChild(pointsText);
 
-    STATS_CONFIG.forEach((stat) => {
+      STATS_CONFIG.forEach((stat) => {
         const row = document.createElement('div');
         row.className = 'upgrade-row';
 
@@ -1062,26 +1102,26 @@
         const currentLevel = (me.stats && me.stats[stat.id] !== undefined) ? me.stats[stat.id] : 0;
 
         for (let i = 0; i < 8; i++) {
-            const unit = document.createElement('div');
-            unit.className = 'level-unit' + (i < currentLevel ? ` filled ${stat.color}` : '');
-            bar.appendChild(unit);
+          const unit = document.createElement('div');
+          unit.className = 'level-unit' + (i < currentLevel ? ` filled ${stat.color}` : '');
+          bar.appendChild(unit);
         }
 
         const btn = document.createElement('button');
         btn.className = `upgrade-btn ${stat.color}`;
         btn.textContent = '+';
         btn.onclick = (e) => {
-            e.preventDefault();
-            chooseUpgrade(stat.id);
+          e.preventDefault();
+          chooseUpgrade(stat.id);
         };
 
         row.appendChild(nameSpan);
         row.appendChild(bar);
         row.appendChild(btn);
         upgradeButtonsDiv.appendChild(row);
-    });
-    
-}
+      });
+
+    }
     function chooseUpgrade(choiceId) {
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({
@@ -1098,10 +1138,10 @@
       }
     }
 
-    
+
 
     function hideUpgradeMenu() {
-      upgradeUI.style.display = 'none';  
+      upgradeUI.style.display = 'none';
     }
 
     window.addEventListener('touchmove', function (e) {
@@ -1134,6 +1174,10 @@
       document.getElementById("login").style.display = "none";
       connect(name);
     }
+    document.getElementById("closeUpgrade").onclick = () => {
+      upgradeUI.style.display = "none";
+      upgradeClosed = true;
+    };
 
   </script>
 </body>
