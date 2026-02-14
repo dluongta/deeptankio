@@ -1020,7 +1020,7 @@
     function showUpgradeMenu() {
     if (upgradeUI.style.display === 'none' && upgradeUI.dataset.manuallyClosed === 'true') return;
     const me = state.players.find(p => p.id === clientId);
-    if (me && me.level >= 45) {
+    if (me && me.level >= 50) {
         upgradeUI.style.display = 'none';
         return;
     }
